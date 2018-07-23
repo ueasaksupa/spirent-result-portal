@@ -1,24 +1,24 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 # Create your views here.
 
-def index(request):
-    latest_question_list = Question.objects.order_by('-pub_date')[:5]
-    context = {
-        'latest_question_list': latest_question_list,
-    }
-    return render(request, 'polls/index.html', context)
+from .models import Document
 
-
-def simple_upload(request):
+def home(request):
     if request.method == 'POST' and request.FILES['myfile']:
         myfile = request.FILES['myfile']
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)
-        return render(request, 'core/simple_upload.html', {
+        
+        # save file path to DB
+        d = Document(path=uploaded_file_url)
+        d.save()
+
+        return render(request, 'poc/home.html', {
             'uploaded_file_url': uploaded_file_url
         })
-    return render(request, 'core/simple_upload.html')
+    return render(request, 'poc/home.html')

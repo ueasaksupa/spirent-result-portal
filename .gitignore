@@ -48,6 +48,8 @@ Temporary Items
 
 # User ignore
 db.sqlite3
-*.pyc
+__pycache__/
+*.py[cod]
 */migrations/*
 */settings.py
+media/*
