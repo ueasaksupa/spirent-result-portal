@@ -50,3 +50,4 @@ Temporary Items
 db.sqlite3
 *.pyc
 */migrations/*
+*/settings.py
