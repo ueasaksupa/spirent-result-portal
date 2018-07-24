@@ -3,7 +3,6 @@
 {% load static %}
 
 {% block content %}
-
 <div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
     <div>
         <h3>
@@ -20,8 +19,10 @@
                     <th>Drop</th>
                     <th>Drop time (ms)</th>
                     <th>Testset</th>
-                    <th>datetime</th>
                     <th>Service type</th>
+                    <th>BG</th>
+                    <th>datetime</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -33,12 +34,32 @@
                     <td>{{ row.drop_count }}</td>
                     <td>{{ row.drop_time }}</td>
                     <td>{{ row.test_set }}</td>
-                    <td>{{ row.pub_date }}</td>
                     <td>{{ row.service_type }}</td>
+                    <td>{{ row.bg_service }}</td>
+                    <td>{{ row.pub_date }}</td>
+
                 </tr>
             {% endfor %}
             </tbody>
+            <tfoot>
+                <tr>
+                    <th>Flow Name</th>
+                    <th>Tx</th>
+                    <th>Rx</th>
+                    <th>Drop</th>
+                    <th>Drop time (ms)</th>
+                    <th>Testset</th>
+                    <th>Service type</th>
+                    <th>BG</th>
+                    <th>datetime</th>
+
+                </tr>
+            </tfoot>
         </table>
+    {% else %}
+        <p>
+            No Data.
+        </p>
     {% endif %}
 </div>
 {% endblock %}

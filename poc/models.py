@@ -51,7 +51,7 @@ class Document(models.Model):
         template_dict, template_header, theader_index = self.__open_collector(1,'A',MEDIA_DIR,'Result')
         for key,value in template_dict.items():
             try:
-                flow = FlowTemplate.objects.get(flow_name=key)
+                flow = FlowTemplate.objects.get(flow_name=key.strip())
                 flow.fps = value[1]
                 flow.id = str(self.id)
             except FlowTemplate.DoesNotExist:
@@ -69,13 +69,21 @@ class Document(models.Model):
                 service_type = 'L3'
             elif 'L2' in key.strip().upper():
                 service_type = 'L2'
-            flow = self.flows_set.create(flow_name=key.strip(), 
+            if 'BG' in key.strip().upper():
+                bg = 'true'
+            else:
+                bg = 'false'
+            fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+            drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
+            self.flows_set.create(flow_name=key.strip(), 
                                                 pub_date=timezone.now(),
                                                 test_set=str(testcase),
                                                 tx=value[theader_index['Tx Count (Frames)']],
                                                 rx=value[theader_index['Rx Count (Frames)']],
                                                 drop_count=value[theader_index['Tx-Rx (Frames)']],
-                                                service_type=service_type) 
+                                                drop_time=drop_time,
+                                                service_type=service_type,
+                                                bg_service=bg) 
 
 class FlowTemplate(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
@@ -92,7 +100,8 @@ class Flows(models.Model):
     tx = models.IntegerField(default=0)
     rx = models.IntegerField(default=0)
     drop_count = models.IntegerField(default=0)
-    drop_time = models.IntegerField(default=0)
+    drop_time = models.FloatField(default=0.0)
     service_type = models.CharField(max_length=100)
+    bg_service = models.CharField(max_length=20,default='false')
     def __str__(self):
         return self.flow_name+' drop: '+str(self.drop_count)

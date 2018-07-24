@@ -7,6 +7,10 @@
     margin-top: 3%
 }
 .show-result-container{
-    max-width: 90em;
+    max-width: 110em;
     margin-top: 3%
+}
+table{
+    line-height: 0.5;
+    font-size: 15px;
 }

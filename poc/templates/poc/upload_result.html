@@ -4,7 +4,7 @@
 
 <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
   <main role="main" class="inner cover">
-    <h1 class="cover-heading">Upload your files.</h1>
+    <h1 class="cover-heading">Upload your results.</h1>
     <form action="{% url 'poc:rupload'%}" method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="form-group row">

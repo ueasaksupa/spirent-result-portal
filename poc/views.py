@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404,get_list_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.conf import settings
+from django.db.models import Max
 from django.core.files.storage import FileSystemStorage
 # Create your views here.
 
@@ -41,10 +42,7 @@ def result_upload_handler(request):
         d.save()
         # calculate result
         d.upload_result(request.POST['testcase'])
-
-        latest_flow = get_list_or_404(Flows, test_set=request.POST['testcase'])
-        context = {'latest_flow': latest_flow, 'desc' : request.POST['description']}
-        return render(request, 'poc/result.html', context)
+        return HttpResponseRedirect(reverse('poc:result'))
     else:
         return render(request, 'poc/upload_result.html')
 
@@ -54,9 +52,14 @@ def show_template(request):
     return render(request, 'poc/flowtemplate.html', context)
 
 def show_result(request):
-    latest_flow = get_list_or_404(Flows)
-    context = {'latest_flow': latest_flow, 'desc':"ALL Results"}
-    return render(request, 'poc/result.html', context)
+    try:
+        latest_flow_set = Flows.objects.all().aggregate(Max('test_set'))
+        latest_flow = Flows.objects.filter(test_set=latest_flow_set['test_set__max'])
+        context = {'latest_flow': latest_flow, 'desc':"Latest Results"}
+        return render(request, 'poc/result.html', context)
+    except Flows.DoesNotExist:
+        return render(request, 'poc/result.html')
 
 def show_stat(request):
     return render(request, 'poc/home.html')
+
