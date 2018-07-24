@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['localhost','127.0.0.1']
 
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
+    'poc.apps.PocConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -79,8 +80,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'poll',
         'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
+        'PASSWORD': 'cisco123',
+        'HOST': '192.168.11.127',
     }
 }
 
