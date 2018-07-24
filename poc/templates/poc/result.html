@@ -1,0 +1,44 @@
+{% extends 'poc/base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
+    <div>
+        <h3>
+            {{ desc }}
+        </h3>
+    </div>
+    {% if latest_flow %}
+        <table id="table_id" class="display">
+            <thead>
+                <tr>
+                    <th>Flow Name</th>
+                    <th>Tx</th>
+                    <th>Rx</th>
+                    <th>Drop</th>
+                    <th>Drop time (ms)</th>
+                    <th>Testset</th>
+                    <th>datetime</th>
+                    <th>Service type</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in latest_flow %}
+                <tr>
+                    <td>{{ row.flow_name }}</td>
+                    <td>{{ row.tx }}</td>
+                    <td>{{ row.rx }}</td>
+                    <td>{{ row.drop_count }}</td>
+                    <td>{{ row.drop_time }}</td>
+                    <td>{{ row.test_set }}</td>
+                    <td>{{ row.pub_date }}</td>
+                    <td>{{ row.service_type }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endblock %}

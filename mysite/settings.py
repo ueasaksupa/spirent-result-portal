@@ -31,18 +31,12 @@ ALLOWED_HOSTS = ['localhost','127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
-<<<<<<< HEAD
-    'polls.apps.PollsConfig',
-    'poc.apps.PocConfig',
-=======
->>>>>>> 862346ab32134db420a705926ff87c593ed6b8d1
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'polls.apps.PollsConfig',
     'poc.apps.PocConfig',
 ]
 
@@ -83,7 +77,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'poll',
+        'NAME': 'poc',
         'USER': 'root',
         'PASSWORD': 'cisco123',
         'HOST': '192.168.11.127',

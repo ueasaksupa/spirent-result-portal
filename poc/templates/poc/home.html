@@ -3,14 +3,24 @@
 {% load static %}
 
 {% block content %}
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="file" name="myfile">
-    <button type="submit">Upload</button>
-  </form>
 
-  {% if uploaded_file_url %}
-    <p>File uploaded at: <a href="{{ uploaded_file_url }}">{{ uploaded_file_url }}</a></p>
-  {% endif %}
-  
+<p>THIS IS HOME</p>
+<table id="table_id" class="display">
+        <thead>
+            <tr>
+                <th>Column 1</th>
+                <th>Column 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Row 1 Data 1</td>
+                <td>Row 1 Data 2</td>
+            </tr>
+            <tr>
+                <td>Row 2 Data 1</td>
+                <td>Row 2 Data 2</td>
+            </tr>
+        </tbody>
+</table>
 {% endblock %}
