@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.conf import settings
 from openpyxl import Workbook
 from openpyxl import load_workbook
-import os
 import datetime
 
 # Create your models here.
@@ -62,6 +61,8 @@ class Document(models.Model):
     def upload_result(self,testcase):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(4,'C',MEDIA_DIR,'Advanced Sequencing')
+        summary = {}
+        # for flows
         for key,value in template_dict.items():
             if 'L2L3' in key.strip().upper():
                 service_type = 'L2L3'
@@ -73,6 +74,7 @@ class Document(models.Model):
                 bg = 'true'
             else:
                 bg = 'false'
+            
             fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
             drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
             self.flows_set.create(flow_name=key.strip(), 
@@ -83,7 +85,9 @@ class Document(models.Model):
                                                 drop_count=value[theader_index['Tx-Rx (Frames)']],
                                                 drop_time=drop_time,
                                                 service_type=service_type,
-                                                bg_service=bg) 
+                                                bg_service=bg)
+        ### for flowsummary
+
 
 class FlowTemplate(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
@@ -105,3 +109,14 @@ class Flows(models.Model):
     bg_service = models.CharField(max_length=20,default='false')
     def __str__(self):
         return self.flow_name+' drop: '+str(self.drop_count)
+
+class FlowSummary(models.Model):
+    A_end = models.CharField(default="",max_length=100)
+    Z_end = models.CharField(default="",max_length=100)
+    test_set = models.CharField(default="",max_length=100)
+    service_type = models.CharField(max_length=100)
+    bg_service = models.CharField(max_length=20,default='false')
+    drop_time_upstream = models.FloatField(default=0.0)
+    drop_time_downstream = models.FloatField(default=0.0)
+    pub_date = models.DateTimeField('date published')
+

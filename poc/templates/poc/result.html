@@ -3,13 +3,22 @@
 {% load static %}
 
 {% block content %}
+
 <div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
-    <div>
-        <h3>
-            {{ desc }}
-        </h3>
-    </div>
     {% if latest_flow %}
+        <div class="row">
+            <div class="col-12">
+                <div class="float-right btn-group mr-2">
+                    <a href="{% url 'poc:summary' test_set %}" class="btn btn-sm btn-outline-secondary">Summary</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary">View all test</a>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3>
+                {{ desc }}
+            </h3>
+        </div>
         <table id="table_id" class="display">
             <thead>
                 <tr>
@@ -17,9 +26,9 @@
                     <th>Tx</th>
                     <th>Rx</th>
                     <th>Drop</th>
-                    <th>Drop time (ms)</th>
+                    <th>Drop time</th>
                     <th>Testset</th>
-                    <th>Service type</th>
+                    <th>Service</th>
                     <th>BG</th>
                     <th>datetime</th>
 
@@ -28,7 +37,7 @@
             <tbody>
             {% for row in latest_flow %}
                 <tr>
-                    <td>{{ row.flow_name }}</td>
+                    <td><a href="{% url 'poc:chart' row.id %}">{{ row.flow_name }}</a></td>
                     <td>{{ row.tx }}</td>
                     <td>{{ row.rx }}</td>
                     <td>{{ row.drop_count }}</td>

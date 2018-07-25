@@ -3,6 +3,11 @@ $(document).ready(function() {
         orderCellsTop: true,
         fixedHeader: true,
         pageLength: 210,
+        columnDefs: [ {
+            targets: [ 6 ],
+            orderData: [ 6, 4 ]
+        }],
+        //
         initComplete: function () {
             this.api().columns().every( function () {
                 var column = this;
@@ -22,6 +27,7 @@ $(document).ready(function() {
                     select.append( '<option value="'+d+'">'+d+'</option>' )
                 } );
             } );
-        }
+        },
+        //
     } );
 } );
