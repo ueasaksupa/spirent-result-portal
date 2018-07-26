@@ -4,7 +4,7 @@ from . import views
 
 app_name = 'poc'
 urlpatterns = [
-    path('', views.show_result, name='home'),
+    path('', views.show_all_results, name='home'),
     path('tupload', views.template_upload_handler, name='tupload'),
     path('rupload', views.result_upload_handler, name='rupload'),
     path('showtemplate', views.show_template, name='showtemplate'),

@@ -56,10 +56,8 @@ class Document(models.Model):
             service_type = 'L3'
         elif 'L2' in flow_name:
             service_type = 'L2'
-        if 'BG' in flow_name:
-            bg = 'true'
-        else:
-            bg = 'false'
+        bg = 'true' if 'BG' in flow_name else 'false'
+
         sp = flow_name.split('_')
         if sp[2] > sp[3]:
             Aend = sp[2]
@@ -86,7 +84,47 @@ class Document(models.Model):
             finally:
                 flow.save()
 
-    def upload_result(self,testcase):
+    def save_multicast_server_result(self, testcase, service_type):
+        MEDIA_DIR = settings.BASE_DIR+str(self.path)
+        template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
+        summary = {}
+        time = timezone.now()
+        if service_type == 'multicast_core':
+            multiplier = 6
+        elif service_type == 'multicast_headend':
+            multiplier = 2   
+        elif service_type == 'multicast_other':
+            multiplier = 1
+        mcast_drop_list = []
+        # Flows
+        for key,value in template_dict.items():
+            
+            fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+            tx = value[theader_index['Tx Count (Frames)']]
+            rx = value[theader_index['Rx Count (Frames)']]
+            drop_time = ((6*tx - rx) / (multiplier * fps)) * 1000.0
+            bg = 'true' if 'BG' in key else 'false'
+            mcast_drop_list.append(drop_time)
+            self.flows_set.create(  flow_name=key.strip(),
+                                    pub_date=time,
+                                    test_set=str(testcase),
+                                    tx=tx,
+                                    rx=rx,
+                                    drop_count=(6*tx - rx),
+                                    drop_time=round(drop_time,2),
+                                    service_type=service_type,
+                                    bg_service=bg)
+        # FlowSummary
+        self.flowsummary_set.create(pub_date=time,
+                                    test_set=str(testcase),
+                                    A_end='Root',
+                                    Z_end='Multicast',
+                                    drop_time_upstream=0,
+                                    drop_time_downstream=round(max(mcast_drop_list),2),
+                                    service_type=service_type,
+                                    bg_service=bg)
+
+    def save_other_service_result(self,testcase):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
         summary = {}
@@ -115,7 +153,7 @@ class Document(models.Model):
                                     tx=value[theader_index['Tx Count (Frames)']],
                                     rx=value[theader_index['Rx Count (Frames)']],
                                     drop_count=value[theader_index['Tx-Rx (Frames)']],
-                                    drop_time=drop_time,
+                                    drop_time=round(drop_time,2),
                                     service_type=service_type,
                                     bg_service=bg)
         ### for flowsummary
@@ -124,8 +162,8 @@ class Document(models.Model):
                                         test_set=str(testcase),
                                         A_end=v['Aend'],
                                         Z_end=v['Zend'],
-                                        drop_time_upstream=v['upstream'],
-                                        drop_time_downstream=v['downstream'],
+                                        drop_time_upstream=round(v['upstream'],2),
+                                        drop_time_downstream=round(v['downstream'],2),
                                         service_type=v['service_type'],
                                         bg_service=v['bg'])
 
@@ -143,7 +181,7 @@ class Flows(models.Model):
     test_set = models.CharField(default="",max_length=100)
     tx = models.BigIntegerField(default=0)
     rx = models.BigIntegerField(default=0)
-    drop_count = models.IntegerField(default=0)
+    drop_count = models.BigIntegerField(default=0)
     drop_time = models.FloatField(default=0.0)
     service_type = models.CharField(max_length=100)
     bg_service = models.CharField(max_length=20,default='false')

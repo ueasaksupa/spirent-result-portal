@@ -22,9 +22,7 @@ def template_upload_handler(request):
         # save fps template
         d.upload_template()
 
-        latest_flow_template = get_list_or_404(FlowTemplate)
-        context = {'latest_flow_template': latest_flow_template}
-        return render(request, 'poc/flowtemplate.html', context)
+        return HttpResponseRedirect(reverse('poc:showtemplate'))
     else:
         return render(request, 'poc/upload_template.html')
 
@@ -36,10 +34,14 @@ def result_upload_handler(request):
         uploaded_file_url = fs.url(filename)
         
         # save file path to DB
-        d = Document(path=uploaded_file_url, description=request.POST['description'], test_set=request.POST['testcase'])
-        d.save()
+        data = Document(path=uploaded_file_url, description=request.POST['description'], test_set=request.POST['testcase'])
+        data.save()
         # calculate result
-        d.upload_result(request.POST['testcase'])
+        if request.POST['service_type'] == 'other':
+            data.save_other_service_result(request.POST['testcase'])
+        else:
+            data.save_multicast_server_result(request.POST['testcase'], request.POST['service_type'])
+
         return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testcase'],)))
     else:
         latest_flow_set = Flows.objects.all().aggregate(Max('test_set'))

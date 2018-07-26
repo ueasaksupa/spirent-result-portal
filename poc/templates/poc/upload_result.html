@@ -8,7 +8,7 @@
     <form action="{% url 'poc:rupload'%}" method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="form-group row">
-          <label for="staticEmail" class="col-sm-2 col-form-label">Test No.</label>
+          <label class="col-sm-2 col-form-label">Test No.</label>
           <div class="col-sm-10">
             {% if test_set__max %}
               <input type="number" class="form-control" value='{{test_set__max}}' name="testcase">
@@ -18,16 +18,35 @@
           </div>
       </div>
       <div class="form-group row">
-        <label for="staticEmail" class="col-sm-2 col-form-label">Description</label>
+        <label class="col-sm-2 col-form-label">Description</label>
         <div class="col-sm-10">
           <input type="text" class="form-control" name="description">
         </div>
       </div>
       <div class="form-group row">
-        <label for="inputPassword" class="col-sm-2 col-form-label">Please select file</label>
+        <label class="col-sm-2 col-form-label">Service type</label>
+        <div class="radio form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="service_type" id="inlineRadio1" value="other" checked>
+          <label class="form-check-label" for="inlineRadio1">L2, L2L3, L3</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="service_type" id="inlineRadio2" value="multicast_core">
+          <label class="form-check-label" for="inlineRadio2">Multicast Core</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="service_type" id="inlineRadio3" value="multicast_other">
+          <label class="form-check-label" for="inlineRadio3">Multicast Other</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="service_type" id="inlineRadio4" value="multicast_headend">
+          <label class="form-check-label" for="inlineRadio4">Multicast Chain-Headend</label>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Please select file</label>
         <div class="col-sm-10">
             <input type="file" name="myfile">
-            <button type="submit">Upload</button>
+            <button class="btn btn-primary" type="submit" >Upload</button>
         </div>
       </div>
     </form>
