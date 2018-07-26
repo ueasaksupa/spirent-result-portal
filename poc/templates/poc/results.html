@@ -1,0 +1,42 @@
+{% extends 'poc/base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
+    {% if alltestcases %}
+        <div>
+            <h3>
+                {{ desc }}
+            </h3>
+        </div>
+        <table id="table_alltestcases" class="display">
+            <thead>
+                <tr>
+                    <th>Testset</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in alltestcases %}
+                <tr class="clickable-row" data-href="{% url 'poc:resultdetail' row.test_set %}">
+                    <td>{{ row.test_set }}</td>
+                    <td><a href="{% url 'poc:resultdetail' row.test_set %}">{{ row.description }}</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Test case no.</th>
+                    <th>Description</th>
+                </tr>
+            </tfoot>
+        </table>
+    {% else %}
+        <p>
+            No Data.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

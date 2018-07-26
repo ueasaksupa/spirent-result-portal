@@ -7,7 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from chartit import DataPool, Chart
 # Create your views here.
 
-from .models import Document, Flows, FlowTemplate
+from .models import Document, Flows, FlowTemplate, FlowSummary
 
 def template_upload_handler(request):
     if request.method == 'POST' and request.FILES['myfile']:
@@ -36,34 +36,49 @@ def result_upload_handler(request):
         uploaded_file_url = fs.url(filename)
         
         # save file path to DB
-        d = Document(path=uploaded_file_url, description=request.POST['description'])
+        d = Document(path=uploaded_file_url, description=request.POST['description'], test_set=request.POST['testcase'])
         d.save()
         # calculate result
         d.upload_result(request.POST['testcase'])
-        return HttpResponseRedirect(reverse('poc:result'))
+        return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testcase'],)))
     else:
         latest_flow_set = Flows.objects.all().aggregate(Max('test_set'))
         return render(request, 'poc/upload_result.html', latest_flow_set)
 
 def show_template(request):
-    latest_flow_template = get_list_or_404(FlowTemplate)
-    context = {'latest_flow_template': latest_flow_template}
-    return render(request, 'poc/flowtemplate.html', context)
-
-def show_result(request):
     try:
-        latest_flow_set = Flows.objects.all().aggregate(Max('test_set'))['test_set__max']
-        latest_flow = Flows.objects.filter(test_set=latest_flow_set)
-        context = {'latest_flow': latest_flow, 'desc':"Latest Results", 'test_set':latest_flow_set}
-        return render(request, 'poc/result.html', context)
+        latest_flow_template = FlowTemplate.objects.all()
+        context = {'latest_flow_template': latest_flow_template}
+        return render(request, 'poc/flowtemplate.html', context)
+    except FlowTemplate.DoesNotExist:
+        return render(request, 'poc/flowtemplate.html')
+
+def show_result(request,test_set):
+    try:
+        latest_flow = Flows.objects.filter(test_set=test_set)
+        context = {'latest_flow': latest_flow, 'desc':"Latest Results", 'test_set':test_set}
+        return render(request, 'poc/result_detail.html', context)
     except Flows.DoesNotExist:
-        return render(request, 'poc/result.html')
+        return render(request, 'poc/result_detail.html')
+
+def show_all_results(request):
+    try:
+        alltestcases = Document.objects.exclude(test_set='').order_by('test_set').values('test_set','description').distinct()
+        context = {'alltestcases': alltestcases, 'desc':"All Testcases Results"}
+        return render(request, 'poc/results.html', context)
+    except Flows.DoesNotExist:
+        return render(request, 'poc/results.html')
 
 def show_stat(request):
     return render(request, 'poc/home.html')
 
 def show_summary(request, test_set):
-    return render(request, 'poc/home.html')
+    try:
+        summary_flow = FlowSummary.objects.filter(test_set=test_set)
+        context = {'summary_flow': summary_flow, 'desc':"Summary Results", 'test_set':test_set}
+        return render(request, 'poc/summary.html', context)
+    except Flows.DoesNotExist:
+        return render(request, 'poc/summary.html')
 
 
 def chart_view(request, flow_id):

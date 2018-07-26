@@ -1,0 +1,68 @@
+{% extends 'poc/base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
+    {% if summary_flow %}
+        <div class="row">
+            <div class="col-12">
+                <div class="float-right btn-group mr-2">
+                    <a href="{% url 'poc:resultdetail' test_set %}" class="btn btn-sm btn-outline-secondary">Full Result</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary">View all test</a>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3>
+                {{ desc }}
+            </h3>
+        </div>
+        <table id="table_resultdetail" class="display">
+            <thead>
+                <tr>
+                    <th>A End</th>
+                    <th>Z End</th>
+                    <th>Drop time downstream</th>
+                    <th>Drop time upstream</th>
+                    <th>Testset</th>
+                    <th>Service</th>
+                    <th>BG</th>
+                    <th>datetime</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in summary_flow %}
+                <tr>
+                    <td>{{ row.A_end }}</td>
+                    <td>{{ row.Z_end }}</td>
+                    <td>{{ row.drop_time_downstream }}</td>
+                    <td>{{ row.drop_time_upstream }}</td>
+                    <td>{{ row.test_set }}</td>
+                    <td>{{ row.service_type }}</td>
+                    <td>{{ row.bg_service }}</td>
+                    <td>{{ row.pub_date }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>A End</th>
+                    <th>Z End</th>
+                    <th>Drop time upstream</th>
+                    <th>Drop time downstream</th>
+                    <th>Testset</th>
+                    <th>Service</th>
+                    <th>BG</th>
+                    <th>datetime</th>
+                </tr>
+            </tfoot>
+        </table>
+    {% else %}
+        <p>
+            No Data.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

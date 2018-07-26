@@ -6,7 +6,7 @@
 
 <div class="show-template-container d-flex h-100 p-3 mx-auto flex-column">
     {% if latest_flow_template %}
-        <table id="table_id" class="display">
+        <table id="table_template" class="display">
             <thead>
                 <tr>
                     <th>Flow Name</th>
@@ -21,7 +21,17 @@
                 </tr>
             {% endfor %}
             </tbody>
+            <tfoot>
+                <tr>
+                    <th>Flow Name</th>
+                    <th>Frame per Second</th>
+                </tr>
+            </tfoot>
         </table>
+    {% else %}
+        <p>
+            No Data.
+        </p>
     {% endif %}
 </div>
 {% endblock %}

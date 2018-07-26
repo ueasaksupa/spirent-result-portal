@@ -1,5 +1,18 @@
 $(document).ready(function() {
-    $('#table_id').DataTable( {
+    $(".clickable-row").click(function() {
+        window.location = $(this).data("href");
+    });
+    $('#table_template').DataTable({
+        orderCellsTop: true,
+        fixedHeader: true,
+        pageLength: 200,
+    });
+    $('#table_alltestcases').DataTable({
+        orderCellsTop: true,
+        fixedHeader: true,
+        pageLength: 40,
+    });
+    $('#table_resultdetail').DataTable( {
         orderCellsTop: true,
         fixedHeader: true,
         pageLength: 210,

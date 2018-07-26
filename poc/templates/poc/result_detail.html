@@ -19,7 +19,7 @@
                 {{ desc }}
             </h3>
         </div>
-        <table id="table_id" class="display">
+        <table id="table_resultdetail" class="display">
             <thead>
                 <tr>
                     <th>Flow Name</th>
@@ -31,7 +31,6 @@
                     <th>Service</th>
                     <th>BG</th>
                     <th>datetime</th>
-
                 </tr>
             </thead>
             <tbody>
@@ -46,7 +45,6 @@
                     <td>{{ row.service_type }}</td>
                     <td>{{ row.bg_service }}</td>
                     <td>{{ row.pub_date }}</td>
-
                 </tr>
             {% endfor %}
             </tbody>
@@ -61,7 +59,6 @@
                     <th>Service type</th>
                     <th>BG</th>
                     <th>datetime</th>
-
                 </tr>
             </tfoot>
         </table>

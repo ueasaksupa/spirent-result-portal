@@ -9,7 +9,8 @@ urlpatterns = [
     path('rupload', views.result_upload_handler, name='rupload'),
     path('showtemplate', views.show_template, name='showtemplate'),
     path('stat', views.show_stat, name='stat'),
-    path('result', views.show_result, name='result'),
+    path('result', views.show_all_results, name='result'),
+    path('result/<int:test_set>', views.show_result, name='resultdetail'),
     path('result/summary/<int:test_set>', views.show_summary, name='summary'),
     path('chart/<int:flow_id>', views.chart_view, name='chart')
 ]
