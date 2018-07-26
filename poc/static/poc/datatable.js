@@ -5,7 +5,7 @@ $(document).ready(function() {
     $('#table_template').DataTable({
         orderCellsTop: true,
         fixedHeader: true,
-        pageLength: 200,
+        pageLength: 100,
     });
     $('#table_alltestcases').DataTable({
         orderCellsTop: true,
@@ -15,7 +15,7 @@ $(document).ready(function() {
     $('#table_resultdetail').DataTable( {
         orderCellsTop: true,
         fixedHeader: true,
-        pageLength: 210,
+        pageLength: 100,
         columnDefs: [ {
             targets: [ 6 ],
             orderData: [ 6, 4 ]

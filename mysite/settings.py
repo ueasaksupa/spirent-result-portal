@@ -25,7 +25,7 @@ SECRET_KEY = '*1=k^u3!bsc_!!7of#n)$8lk==c^bfw5i%2)$k$-jxw0cqov!4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1','192.168.11.127']
+ALLOWED_HOSTS = ['localhost','127.0.0.1','192.168.1.101']
 
 
 # Application definition
@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': 'poc',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': '',
+        'HOST': '127.0.0.1',
     }
 }
 

@@ -65,8 +65,16 @@ def show_result(request,test_set):
 
 def show_all_results(request):
     try:
+        uniq_set = {}
+        uniq_list = []
         alltestcases = Document.objects.exclude(test_set='').order_by('test_set').values('test_set','description').distinct()
-        context = {'alltestcases': alltestcases, 'desc':"All Testcases Results"}
+        for case in alltestcases:
+            if case['test_set'] not in uniq_set:
+                uniq_list.append( {'test_set':case['test_set'], 'description':case['description']} )
+                uniq_set[case['test_set']] = True
+            else:
+                uniq_list[-1]['description'] += ' :: '+case['description']
+        context = {'alltestcases': uniq_list , 'desc':"All Testcases Results"}
         return render(request, 'poc/results.html', context)
     except Flows.DoesNotExist:
         return render(request, 'poc/results.html')

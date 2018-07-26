@@ -134,7 +134,7 @@ class Document(models.Model):
             fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
             drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
             service_type, bg, Aend, Zend, direction = self.__extrac_service_flow(key)
-            summary_key = Aend+'_'+Zend+'_'+bg
+            summary_key = Aend+'_'+Zend+'_'+bg+'_'+service_type
 
             if summary_key not in summary:
                 if direction is 'upstream':
