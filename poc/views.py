@@ -3,7 +3,10 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.conf import settings
 from django.db.models import Max
+from django.db.models import Q
+
 from django.core.files.storage import FileSystemStorage
+
 from chartit import DataPool, Chart
 # Create your views here.
 
@@ -58,7 +61,8 @@ def show_template(request):
 def show_result(request,test_set):
     try:
         latest_flow = Flows.objects.filter(test_set=test_set)
-        context = {'latest_flow': latest_flow, 'desc':"Latest Results", 'test_set':test_set}
+        desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
+        context = {'latest_flow': latest_flow, 'desc':desc, 'test_set':test_set}
         return render(request, 'poc/result_detail.html', context)
     except Flows.DoesNotExist:
         return render(request, 'poc/result_detail.html')
@@ -67,10 +71,10 @@ def show_all_results(request):
     try:
         uniq_set = {}
         uniq_list = []
-        alltestcases = Document.objects.exclude(test_set='').order_by('test_set').values('test_set','description').distinct()
+        alltestcases = Document.objects.exclude(test_set='').order_by('test_set').values('test_set','description','remark').distinct()
         for case in alltestcases:
             if case['test_set'] not in uniq_set:
-                uniq_list.append( {'test_set':case['test_set'], 'description':case['description']} )
+                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'] } )
                 uniq_set[case['test_set']] = True
             else:
                 uniq_list[-1]['description'] += ' :: '+case['description']
@@ -79,16 +83,29 @@ def show_all_results(request):
     except Flows.DoesNotExist:
         return render(request, 'poc/results.html')
 
-def show_stat(request):
-    return render(request, 'poc/home.html')
+# def show_stat(request):
+#     return render(request, 'poc/home.html')
 
 def show_summary(request, test_set):
     try:
         summary_flow = FlowSummary.objects.filter(test_set=test_set)
-        context = {'summary_flow': summary_flow, 'desc':"Summary Results", 'test_set':test_set}
+        desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
+        context = {'summary_flow': summary_flow, 'desc':"Summary result for: "+desc, 'test_set':test_set}
         return render(request, 'poc/summary.html', context)
     except Flows.DoesNotExist:
         return render(request, 'poc/summary.html')
+
+def edit_remark(request):
+    if request.method == 'POST':
+        test_set = request.POST['test_set']
+        remark = request.POST['remark']
+        
+        print (test_set, remark)
+        doc = Document.objects.filter(test_set=test_set)
+        for record in doc:
+            record.remark = remark
+            record.save()
+        return HttpResponseRedirect(reverse('poc:result'))
 
 
 def chart_view(request, flow_id):

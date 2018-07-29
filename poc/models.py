@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.conf import settings
 from openpyxl import Workbook
 from openpyxl import load_workbook
+
 import datetime
 
 # Create your models here.
@@ -12,8 +13,10 @@ class Document(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=100,default='')
     test_set = models.CharField(default="",max_length=100)
+    remark = models.CharField(default="",max_length=200)
+
     def __str__(self):
-        return self.description
+        return self.description+'_'+self.remark
     def __open_collector(self,start_collect_row,key_index,filename,sheetname):
         values_dict = {}
 
