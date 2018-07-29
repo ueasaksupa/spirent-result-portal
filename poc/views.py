@@ -35,9 +35,9 @@ def result_upload_handler(request):
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)
-        
+        description = 'no description' if request.POST['description'] == '' else request.POST['description']
         # save file path to DB
-        data = Document(path=uploaded_file_url, description=request.POST['description'], test_set=request.POST['testcase'])
+        data = Document(path=uploaded_file_url, description=description, test_set=request.POST['testcase'])
         data.save()
         # calculate result
         if request.POST['service_type'] == 'other':
@@ -47,7 +47,7 @@ def result_upload_handler(request):
 
         return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testcase'],)))
     else:
-        latest_flow_set = Flows.objects.all().aggregate(Max('test_set'))
+        latest_flow_set = Document.objects.all().aggregate(Max('test_set'))
         return render(request, 'poc/upload_result.html', latest_flow_set)
 
 def show_template(request):
@@ -61,8 +61,11 @@ def show_template(request):
 def show_result(request,test_set):
     try:
         latest_flow = Flows.objects.filter(test_set=test_set)
-        desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
-        context = {'latest_flow': latest_flow, 'desc':desc, 'test_set':test_set}
+        try:
+            desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
+            context = {'latest_flow': latest_flow, 'desc':desc, 'test_set':test_set}
+        except IndexError:
+            context = {'latest_flow': latest_flow, 'desc':'no description', 'test_set':test_set}
         return render(request, 'poc/result_detail.html', context)
     except Flows.DoesNotExist:
         return render(request, 'poc/result_detail.html')
@@ -71,7 +74,7 @@ def show_all_results(request):
     try:
         uniq_set = {}
         uniq_list = []
-        alltestcases = Document.objects.exclude(test_set='').order_by('test_set').values('test_set','description','remark').distinct()
+        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark').distinct()
         for case in alltestcases:
             if case['test_set'] not in uniq_set:
                 uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'] } )
@@ -89,8 +92,11 @@ def show_all_results(request):
 def show_summary(request, test_set):
     try:
         summary_flow = FlowSummary.objects.filter(test_set=test_set)
-        desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
-        context = {'summary_flow': summary_flow, 'desc':"Summary result for: "+desc, 'test_set':test_set}
+        try:
+            desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
+            context = {'summary_flow': summary_flow, 'desc':"Summary result for: "+desc, 'test_set':test_set}
+        except IndexError:
+            context = {'latest_flow': latest_flow, 'desc':'no description', 'test_set':test_set}
         return render(request, 'poc/summary.html', context)
     except Flows.DoesNotExist:
         return render(request, 'poc/summary.html')

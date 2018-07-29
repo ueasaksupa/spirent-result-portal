@@ -11,8 +11,8 @@ import datetime
 class Document(models.Model):
     path = models.FileField(upload_to='documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    description = models.CharField(max_length=100,default='')
-    test_set = models.CharField(default="",max_length=100)
+    description = models.CharField(max_length=100,default='none')
+    test_set = models.IntegerField(default=0)
     remark = models.CharField(default="",max_length=200)
 
     def __str__(self):
@@ -181,7 +181,7 @@ class Flows(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     flow_name = models.CharField(default="",max_length=200)
     pub_date = models.DateTimeField('date published')
-    test_set = models.CharField(default="",max_length=100)
+    test_set = models.IntegerField(default=0)
     tx = models.BigIntegerField(default=0)
     rx = models.BigIntegerField(default=0)
     drop_count = models.BigIntegerField(default=0)
@@ -195,7 +195,7 @@ class FlowSummary(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     A_end = models.CharField(default="",max_length=100)
     Z_end = models.CharField(default="",max_length=100)
-    test_set = models.CharField(default="",max_length=100)
+    test_set = models.IntegerField(default=0)
     service_type = models.CharField(max_length=100)
     bg_service = models.CharField(max_length=20,default='false')
     drop_time_upstream = models.FloatField(default=0.0)
