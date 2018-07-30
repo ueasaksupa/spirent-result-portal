@@ -28,3 +28,9 @@ table{
     margin-left: 20px;
     margin-right: 50px;
 }
+.export-btn-grp{
+    margin-left: 15px;
+}
+.btn-outline-primary{
+    width:56px;
+}

@@ -7,17 +7,17 @@
 <div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
     {% if latest_flow %}
         <div class="row">
-            <div class="col-12">
+            <div class="col-6">
+                <h3>
+                    {{ desc }}
+                </h3>
+            </div>
+            <div class="col-6">
                 <div class="float-right btn-group mr-2">
                     <a href="{% url 'poc:summary' test_set %}" class="btn btn-sm btn-outline-secondary">Summary</a>
                     <a href="" class="btn btn-sm btn-outline-secondary">View all test</a>
                 </div>
             </div>
-        </div>
-        <div>
-            <h3>
-                {{ desc }}
-            </h3>
         </div>
         <table id="table_resultdetail" class="display">
             <thead>
