@@ -16,7 +16,7 @@ class Document(models.Model):
     remark = models.CharField(default="",max_length=200)
 
     def __str__(self):
-        return self.description+'_'+self.remark
+        return self.description
     def __open_collector(self,start_collect_row,key_index,filename,sheetname):
         values_dict = {}
 
