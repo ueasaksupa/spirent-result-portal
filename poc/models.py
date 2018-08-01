@@ -13,7 +13,7 @@ class Document(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=100,default='none')
     test_set = models.IntegerField(default=0)
-    remark = models.CharField(default="",max_length=200)
+    remark = models.CharField(default="", max_length=200)
 
     def __str__(self):
         return self.description
@@ -79,20 +79,20 @@ class Document(models.Model):
         return service_type, bg, Aend, Zend, direction
 
 
-    def upload_template(self):
+    def upload_template(self,doctype):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(1,'Stream Block',MEDIA_DIR,'Result')
         for key,value in template_dict.items():
             try:
-                flow = FlowTemplate.objects.get(flow_name=key.strip())
+                flow = FlowTemplate.objects.get(flow_name=key.strip(), doctype=doctype)
                 flow.fps = value[1]
                 flow.id = str(self.id)
+                flow.save()
             except FlowTemplate.DoesNotExist:
-                flow = FlowTemplate(flow_name=key.strip(), fps=value[1], document_id=str(self.id))
-            finally:
+                flow = FlowTemplate(flow_name=key.strip(), fps=value[1], document_id=str(self.id), doctype=doctype)
                 flow.save()
 
-    def save_multicast_server_result(self, testcase, service_type):
+    def save_multicast_server_result(self, testcase, service_type, doctype):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
         summary = {}
@@ -107,7 +107,7 @@ class Document(models.Model):
         # Flows
         for key,value in template_dict.items():
             try:
-                fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+                fps = FlowTemplate.objects.get(flow_name=key.strip(), doctype=doctype).fps
             except FlowTemplate.DoesNotExist:
                 continue
             tx = value[theader_index['Tx Count (Frames)']]
@@ -123,7 +123,8 @@ class Document(models.Model):
                                     drop_count=(6*tx - rx),
                                     drop_time=round(drop_time,2),
                                     service_type=service_type,
-                                    bg_service=bg)
+                                    bg_service=bg,
+                                    fps=fps)
         # FlowSummary
         self.flowsummary_set.create(pub_date=time,
                                     test_set=str(testcase),
@@ -134,7 +135,7 @@ class Document(models.Model):
                                     service_type=service_type,
                                     bg_service=bg)
 
-    def save_other_service_result(self,testcase):
+    def save_other_service_result(self,testcase, doctype):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
         summary = {}
@@ -142,7 +143,7 @@ class Document(models.Model):
         # for flows
         for key,value in template_dict.items():
             try:
-                fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+                fps = FlowTemplate.objects.get(flow_name=key.strip(), doctype=doctype).fps
             except FlowTemplate.DoesNotExist:
                 continue
             drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
@@ -168,7 +169,8 @@ class Document(models.Model):
                                     drop_count=value[theader_index['Tx-Rx (Frames)']],
                                     drop_time=round(drop_time,2),
                                     service_type=service_type,
-                                    bg_service=bg)
+                                    bg_service=bg,
+                                    fps=fps)
         ### for flowsummary
         for k,v in summary.items():
             self.flowsummary_set.create( pub_date=time,
@@ -184,6 +186,7 @@ class FlowTemplate(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     flow_name = models.CharField(max_length=200)
     fps = models.IntegerField(default=1000)
+    doctype = models.CharField(default="", max_length=100)
     def __str__(self):
         return self.flow_name
 
@@ -198,6 +201,8 @@ class Flows(models.Model):
     drop_time = models.FloatField(default=0.0)
     service_type = models.CharField(max_length=100)
     bg_service = models.CharField(max_length=20,default='false')
+    fps = models.IntegerField(default=0)
+
     def __str__(self):
         return self.flow_name+' drop: '+str(self.drop_count)
 

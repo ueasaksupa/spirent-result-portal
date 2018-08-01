@@ -18,12 +18,13 @@ def template_upload_handler(request):
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)
+        doctype = request.POST['doctype']
         
         # save file path to DB
         d = Document(path=uploaded_file_url, description=request.POST['description'])
         d.save()
         # save fps template
-        d.upload_template()
+        d.upload_template(doctype=doctype)
 
         return HttpResponseRedirect(reverse('poc:showtemplate'))
     else:
@@ -35,6 +36,7 @@ def result_upload_handler(request):
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)
+        doctype = request.POST['doctype']
         description = 'no description' if request.POST['description'] == '' else request.POST['description']
         # save file path to DB
         data = Document(path=uploaded_file_url, description=description, test_set=request.POST['testcase'])
@@ -42,12 +44,12 @@ def result_upload_handler(request):
         # calculate result
         if request.POST['service_type'] == 'other':
             try:
-                data.save_other_service_result(request.POST['testcase'])
+                data.save_other_service_result(request.POST['testcase'], doctype)
             except:
                 return render(request, 'poc/error.html')
         else:
             try:
-                data.save_multicast_server_result(request.POST['testcase'], request.POST['service_type'])
+                data.save_multicast_server_result(request.POST['testcase'], request.POST['service_type'], doctype)
             except:
                 return render(request, 'poc/error.html')
         return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testcase'],)))
@@ -79,10 +81,10 @@ def show_all_results(request):
     try:
         uniq_set = {}
         uniq_list = []
-        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark').distinct()
+        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark','uploaded_at').distinct()
         for case in alltestcases:
             if case['test_set'] not in uniq_set:
-                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'] } )
+                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':case['uploaded_at'] } )
                 uniq_set[case['test_set']] = True
             else:
                 uniq_list[-1]['description'] += ' :: '+case['description']
@@ -117,7 +119,6 @@ def edit_remark(request):
             record.remark = remark
             record.save()
         return HttpResponseRedirect(reverse('poc:result'))
-
 
 def chart_view(request, flow_id):
     flow_name = get_object_or_404(Flows, id=flow_id).flow_name

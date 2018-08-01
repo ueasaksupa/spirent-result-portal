@@ -18,6 +18,7 @@
                     <th>Description</th>
                     <th>Remark</th>
                     <th>Operation</th>
+                    <th>upload at</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,6 +28,7 @@
                     <td><a href="{% url 'poc:resultdetail' row.test_set %}">{{ row.description }}</a></td>
                     <td>{{ row.remark }}</td>
                     <td class=" center"><a href="#my_modal" data-toggle="modal" data-target="#edit_remark_modal" data-text="{{ row.remark }}" data-set="{{ row.test_set }}">Edit remark</a></td>
+                    <td>{{ row.uploaded_at }}</td>               
                 </tr>
             {% endfor %}
             </tbody>
@@ -36,6 +38,7 @@
                     <th>Description</th>
                     <th>Remark</th>
                     <th>Operation</th>
+                    <th>upload at</th>
                 </tr>
             </tfoot>
         </table>
