@@ -88,6 +88,8 @@ def show_all_results(request):
                 uniq_set[case['test_set']] = True
             else:
                 uniq_list[-1]['description'] += ' :: '+case['description']
+                if len(uniq_list[-1]['description']) > 60:
+                    uniq_list[-1]['description'] = uniq_list[-1]['description'][:60] + ' ...'
         context = {'alltestcases': uniq_list , 'desc':"All Testcases Results"}
         return render(request, 'poc/results.html', context)
     except Flows.DoesNotExist:
