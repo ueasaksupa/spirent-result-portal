@@ -101,8 +101,10 @@ class Document(models.Model):
         mcast_drop_list = []
         # Flows
         for key,value in template_dict.items():
-            
-            fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+            try:
+                fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+            except FlowTemplate.DoesNotExist:
+                continue
             tx = value[theader_index['Tx Count (Frames)']]
             rx = value[theader_index['Rx Count (Frames)']]
             drop_time = ((6*tx - rx) / (multiplier * fps)) * 1000.0
@@ -134,7 +136,10 @@ class Document(models.Model):
         time = timezone.now()
         # for flows
         for key,value in template_dict.items():
-            fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+            try:
+                fps = FlowTemplate.objects.get(flow_name=key.strip()).fps
+            except FlowTemplate.DoesNotExist:
+                continue
             drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
             service_type, bg, Aend, Zend, direction = self.__extrac_service_flow(key)
             summary_key = Aend+'_'+Zend+'_'+bg+'_'+service_type
