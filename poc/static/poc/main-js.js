@@ -4,12 +4,21 @@ $(document).ready(function() {
         orderCellsTop: true,
         fixedHeader: true,
         pageLength: 100,
+        dom: '<"float-right export-btn-grp mr-2"B>lfrtip',
+        buttons: {
+            buttons: [
+                        { extend: 'excelHtml5', text: 'Excel'},
+                        { extend: 'pdfHtml5', text: 'PDF'},
+                        { extend: 'csvHtml5', text: 'CSV'}
+                    ],
+        },
     });
     
     $('#table_alltestcases').DataTable({
         orderCellsTop: true,
         fixedHeader: true,
         pageLength: 50,
+        order: [[ 0, "desc" ]],
     });
 
     $('#edit_remark_modal').on('show.bs.modal', function(e) {
