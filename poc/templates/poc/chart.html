@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        {% include 'poc/head.html' %}
-        {% load chartit %}
-        {{ chart|load_charts:"container" }} <!--ChartLoader-->
-    </head>
-    <body>
-        {% include 'poc/navbar.html' %}
-        <div class='chart-container'>
-            <div id='container'> Chart will be rendered here </div>
-        </div>
-    </body>
+
+<head>
+    {% include 'poc/head.html' %} {% load chartit %} {{ chart|load_charts:"container" }}
+    <!--ChartLoader-->
+</head>
+
+<body>
+    {% include 'poc/navbar.html' %}
+    <div class='chart-container'>
+        <div id='container'> Chart will be rendered here </div>
+    </div>
+</body>
+
 </html>

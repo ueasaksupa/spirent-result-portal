@@ -1,37 +1,37 @@
-{% extends 'poc/base.html' %}
+{% extends 'poc/base.html' %} 
 
-{% load static %}
+{% load static %} 
 
 {% block content %}
 
 <div class="show-template-container d-flex h-100 p-3 mx-auto flex-column">
     {% if latest_flow_template %}
-        <table id="table_template" class="display">
-            <thead>
-                <tr>
-                    <th>Flow Name</th>
-                    <th>Frame per Second</th>
-                </tr>
-            </thead>
-            <tbody>
+    <table id="table_template" class="display">
+        <thead>
+            <tr>
+                <th>Flow Name</th>
+                <th>Frame per Second</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for row in latest_flow_template %}
-                <tr>
-                    <td>{{ row.flow_name }}</td>
-                    <td>{{ row.fps }}</td>
-                </tr>
+            <tr>
+                <td>{{ row.flow_name }}</td>
+                <td>{{ row.fps }}</td>
+            </tr>
             {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th>Flow Name</th>
-                    <th>Frame per Second</th>
-                </tr>
-            </tfoot>
-        </table>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>Flow Name</th>
+                <th>Frame per Second</th>
+            </tr>
+        </tfoot>
+    </table>
     {% else %}
-        <p>
-            No Data.
-        </p>
+    <p>
+        No Data.
+    </p>
     {% endif %}
 </div>
 {% endblock %}

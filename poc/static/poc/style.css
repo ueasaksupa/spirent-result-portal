@@ -1,36 +1,44 @@
-body{
+body {
     background: #f2f2f2;
 }
-.cover-container{
+
+.cover-container {
     max-width: 55em;
     margin-top: 10%;
 }
-.chart-container{
+
+.chart-container {
     margin-top: 5%;
     margin-left: 10%;
     margin-right: 10%;
 }
-.show-template-container{
+
+.show-template-container {
     max-width: 70em;
     margin-top: 3%
 }
-.show-result-container{
+
+.show-result-container {
     max-width: 110em;
     margin-top: 3%
 }
-table{
+
+table {
     line-height: 0.5;
     font-size: 15px;
     background-color: #E5E5E5;
     /* table-layout:fixed; */
 }
-.radio{
+
+.radio {
     margin-left: 20px;
     margin-right: 50px;
 }
-.export-btn-grp{
+
+.export-btn-grp {
     margin-left: 15px;
 }
-.btn-outline-primary{
-    width:56px;
+
+.btn-outline-primary {
+    width: 56px;
 }
