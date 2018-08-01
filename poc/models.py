@@ -59,6 +59,8 @@ class Document(models.Model):
             service_type = 'L3'
         elif 'L2' in flow_name:
             service_type = 'L2'
+        else:
+            service_type = 'none'
         bg = 'true' if 'BG' in flow_name else 'false'
 
         sp = flow_name.split('_')
