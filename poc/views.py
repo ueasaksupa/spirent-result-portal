@@ -41,14 +41,19 @@ def result_upload_handler(request):
         data.save()
         # calculate result
         if request.POST['service_type'] == 'other':
-            data.save_other_service_result(request.POST['testcase'])
+            try:
+                data.save_other_service_result(request.POST['testcase'])
+            except:
+                return render(request, 'poc/error.html')
         else:
-            data.save_multicast_server_result(request.POST['testcase'], request.POST['service_type'])
-
+            try:
+                data.save_multicast_server_result(request.POST['testcase'], request.POST['service_type'])
+            except:
+                return render(request, 'poc/error.html')
         return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testcase'],)))
     else:
         latest_flow_set = Document.objects.all().aggregate(Max('test_set'))
-        return render(request, 'poc/upload_result.html', latest_flow_set)
+        return render(request, 'poc/upload_result.html', latest_flow_set)    
 
 def show_template(request):
     try:

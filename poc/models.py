@@ -59,8 +59,11 @@ class Document(models.Model):
             service_type = 'L3'
         elif 'L2' in flow_name:
             service_type = 'L2'
+        elif 'LOOP' in flow_name:
+            service_type = 'LOOP'
         else:
-            service_type = 'none'
+            service_type = 'NONE'
+
         bg = 'true' if 'BG' in flow_name else 'false'
 
         sp = flow_name.split('_')
