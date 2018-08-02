@@ -110,21 +110,34 @@ class Document(models.Model):
                 fps = FlowTemplate.objects.get(flow_name=key.strip(), doctype=doctype).fps
             except FlowTemplate.DoesNotExist:
                 continue
+            bg = 'true' if 'BG' in key else 'false'            
             tx = value[theader_index['Tx Count (Frames)']]
             rx = value[theader_index['Rx Count (Frames)']]
-            drop_time = ((6*tx - rx) / (multiplier * fps)) * 1000.0
-            bg = 'true' if 'BG' in key else 'false'
-            mcast_drop_list.append(drop_time)
-            self.flows_set.create(  flow_name=key.strip(),
-                                    pub_date=time,
-                                    test_set=str(testcase),
-                                    tx=tx,
-                                    rx=rx,
-                                    drop_count=(6*tx - rx),
-                                    drop_time=round(drop_time,2),
-                                    service_type=service_type,
-                                    bg_service=bg,
-                                    fps=fps)
+            if 'LOOP' in key.strip().upper():
+                drop_time = (tx - rx) / fps * 1000.0
+                self.flows_set.create(  flow_name=key.strip(),
+                        pub_date=time,
+                        test_set=str(testcase),
+                        tx=tx,
+                        rx=rx,
+                        drop_count=(tx - rx),
+                        drop_time=round(drop_time,2),
+                        service_type='LOOP',
+                        bg_service=bg,
+                        fps=fps)
+            else:
+                drop_time = ((6*tx - rx) / (multiplier * fps)) * 1000.0
+                mcast_drop_list.append(drop_time)
+                self.flows_set.create(  flow_name=key.strip(),
+                                        pub_date=time,
+                                        test_set=str(testcase),
+                                        tx=tx,
+                                        rx=rx,
+                                        drop_count=(6*tx - rx),
+                                        drop_time=round(drop_time,2),
+                                        service_type=service_type,
+                                        bg_service=bg,
+                                        fps=fps)
         # FlowSummary
         self.flowsummary_set.create(pub_date=time,
                                     test_set=str(testcase),
