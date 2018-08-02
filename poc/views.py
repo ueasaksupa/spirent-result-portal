@@ -6,7 +6,7 @@ from django.db.models import Max
 from django.db.models import Q
 
 from django.core.files.storage import FileSystemStorage
-
+from datetime import datetime
 from chartit import DataPool, Chart
 # Create your views here.
 
@@ -81,10 +81,12 @@ def show_all_results(request):
     try:
         uniq_set = {}
         uniq_list = []
-        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark','uploaded_at').distinct()
+        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark').distinct()
         for case in alltestcases:
             if case['test_set'] not in uniq_set:
-                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':case['uploaded_at'] } )
+                uploaded_at = Document.objects.filter(test_set=case['test_set'])[0].uploaded_at
+                uploaded_at = uploaded_at.strftime("%b. %d, %Y, %H:%M")
+                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':uploaded_at } )
                 uniq_set[case['test_set']] = True
             else:
                 uniq_list[-1]['description'] += ' :: '+case['description']
