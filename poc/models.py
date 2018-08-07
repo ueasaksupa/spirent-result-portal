@@ -96,6 +96,8 @@ class Document(models.Model):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
         summary = {}
+        mcast_srv_drop_list = []
+        mcast_bg_drop_list = []
         time = timezone.now()
         if service_type == 'multicast_core':
             multiplier = 6
@@ -103,7 +105,6 @@ class Document(models.Model):
             multiplier = 2   
         elif service_type == 'multicast_other':
             multiplier = 1
-        mcast_drop_list = []
         # Flows
         for key,value in template_dict.items():
             try:
@@ -127,7 +128,8 @@ class Document(models.Model):
                         fps=fps)
             else:
                 drop_time = ((6*tx - rx) / (multiplier * fps)) * 1000.0
-                mcast_drop_list.append(drop_time)
+                if bg == 'false':
+                    mcast_srv_drop_list.append(drop_time)
                 self.flows_set.create(  flow_name=key.strip(),
                                         pub_date=time,
                                         test_set=str(testcase),
@@ -138,15 +140,15 @@ class Document(models.Model):
                                         service_type=service_type,
                                         bg_service=bg,
                                         fps=fps)
-        # FlowSummary
+        # FlowSummary Srv MCAST
         self.flowsummary_set.create(pub_date=time,
                                     test_set=str(testcase),
-                                    A_end='Root',
-                                    Z_end='Multicast',
+                                    A_end='Multicast',
+                                    Z_end='Service',
                                     drop_time_upstream=0,
-                                    drop_time_downstream=round(max(mcast_drop_list),2),
+                                    drop_time_downstream=round(max(mcast_srv_drop_list),2),
                                     service_type=service_type,
-                                    bg_service=bg)
+                                    bg_service='false')
 
     def save_other_service_result(self,testcase, doctype):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
