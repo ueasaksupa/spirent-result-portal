@@ -16,7 +16,7 @@ class Document(models.Model):
     remark = models.CharField(default="", max_length=200)
 
     def __str__(self):
-        return self.description
+        return self.description+'__'+str(self.test_set)
     def __open_collector(self,start_collect_row,key_index,filename,sheetname):
         values_dict = {}
 
@@ -81,6 +81,7 @@ class Document(models.Model):
 
     def upload_template(self,doctype):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
+        insert_instances = []
         template_dict, template_header, theader_index = self.__open_collector(1,'Stream Block',MEDIA_DIR,'Result')
         for key,value in template_dict.items():
             try:
@@ -89,13 +90,14 @@ class Document(models.Model):
                 flow.id = str(self.id)
                 flow.save()
             except FlowTemplate.DoesNotExist:
-                flow = FlowTemplate(flow_name=key.strip(), fps=value[1], document_id=str(self.id), doctype=doctype)
-                flow.save()
+                insert_instances.append( FlowTemplate(flow_name=key.strip(), fps=value[1], document_id=str(self.id), doctype=doctype) )
+        FlowTemplate.objects.bulk_create(insert_instances)
 
-    def save_multicast_server_result(self, testcase, service_type, doctype):
+    def save_multicast_service_result(self, testcase, service_type, doctype):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
         summary = {}
+        insert_instances = []
         mcast_srv_drop_list = []
         mcast_bg_drop_list = []
         time = timezone.now()
@@ -154,14 +156,28 @@ class Document(models.Model):
         MEDIA_DIR = settings.BASE_DIR+str(self.path)
         template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
         summary = {}
+        fps_dict = {}
         time = timezone.now()
+        insert_instances = []
         # for flows
+        query_list = FlowTemplate.objects.values('flow_name','fps','doctype')
+        for row in query_list:
+            if row['doctype'] not in fps_dict:
+                fps_dict[row['doctype']] = {row['flow_name']: row['fps']}
+            else:
+                fps_dict[row['doctype']][row['flow_name']] = row['fps']
+
         for key,value in template_dict.items():
+            ### check for flow dose not exist
             try:
-                fps = FlowTemplate.objects.get(flow_name=key.strip(), doctype=doctype).fps
-            except FlowTemplate.DoesNotExist:
+                fps = fps_dict[doctype][key.strip()]
+            except:
                 continue
-            drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
+            ### check for tester error
+            try:
+                drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
+            except:
+                drop_time = -1
             service_type, bg, Aend, Zend, direction = self.__extrac_service_flow(key)
             summary_key = Aend+'_'+Zend+'_'+bg+'_'+service_type
 
@@ -176,26 +192,35 @@ class Document(models.Model):
                 elif direction is 'downstream' and drop_time > summary[summary_key]['downstream']:
                     summary[summary_key]['downstream'] = drop_time
 
-            self.flows_set.create(  flow_name=key.strip(),
-                                    pub_date=time,
-                                    test_set=str(testcase),
-                                    tx=value[theader_index['Tx Count (Frames)']],
-                                    rx=value[theader_index['Rx Count (Frames)']],
-                                    drop_count=value[theader_index['Tx-Rx (Frames)']],
-                                    drop_time=round(drop_time,2),
-                                    service_type=service_type,
-                                    bg_service=bg,
-                                    fps=fps)
+            insert_instances.append(
+                Flows(  flow_name=key.strip(),
+                        pub_date=time,
+                        test_set=str(testcase),
+                        tx=value[theader_index['Tx Count (Frames)']],
+                        rx=value[theader_index['Rx Count (Frames)']],
+                        drop_count=value[theader_index['Tx-Rx (Frames)']],
+                        drop_time=round(drop_time,2),
+                        service_type=service_type,
+                        bg_service=bg,
+                        fps=fps,
+                        document_id=self.id)
+            )
+        Flows.objects.bulk_create(insert_instances)
         ### for flowsummary
+        insert_instances = []
         for k,v in summary.items():
-            self.flowsummary_set.create( pub_date=time,
-                                        test_set=str(testcase),
-                                        A_end=v['Aend'],
-                                        Z_end=v['Zend'],
-                                        drop_time_upstream=round(v['upstream'],2),
-                                        drop_time_downstream=round(v['downstream'],2),
-                                        service_type=v['service_type'],
-                                        bg_service=v['bg'])
+            insert_instances.append(
+                FlowSummary(    pub_date=time,
+                                test_set=str(testcase),
+                                A_end=v['Aend'],
+                                Z_end=v['Zend'],
+                                drop_time_upstream=round(v['upstream'],2),
+                                drop_time_downstream=round(v['downstream'],2),
+                                service_type=v['service_type'],
+                                bg_service=v['bg'],
+                                document_id=self.id)
+            )
+        FlowSummary.objects.bulk_create(insert_instances)
 
 class FlowTemplate(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE)

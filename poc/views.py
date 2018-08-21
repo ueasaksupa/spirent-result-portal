@@ -48,7 +48,7 @@ def result_upload_handler(request):
                 return render(request, 'poc/error.html')
         else:
             try:
-                data.save_multicast_server_result(request.POST['testcase'], request.POST['service_type'], doctype)
+                data.save_multicast_service_result(request.POST['testcase'], request.POST['service_type'], doctype)
             except:
                 return render(request, 'poc/error.html')
         return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testcase'],)))
@@ -80,16 +80,16 @@ def show_all_results(request):
     try:
         uniq_set = {}
         uniq_list = []
-        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark').distinct()
+        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark','uploaded_at').distinct()
         for case in alltestcases:
             if case['test_set'] not in uniq_set:
-                uploaded_at = Document.objects.filter(test_set=case['test_set'])[0].uploaded_at
-                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':uploaded_at } )
+                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':case['uploaded_at'] } )
                 uniq_set[case['test_set']] = True
             else:
                 uniq_list[-1]['description'] += ' :: '+case['description']
                 if len(uniq_list[-1]['description']) > 60:
                     uniq_list[-1]['description'] = uniq_list[-1]['description'][:60] + ' ...'
+
         context = {'alltestcases': uniq_list , 'desc':"All Testcases Results"}
         return render(request, 'poc/results.html', context)
     except Flows.DoesNotExist:
