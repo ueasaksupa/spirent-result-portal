@@ -86,7 +86,8 @@ def show_all_results(request):
                 uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':case['uploaded_at'] } )
                 uniq_set[case['test_set']] = True
             else:
-                uniq_list[-1]['description'] += ' :: '+case['description']
+                if uniq_list[-1]['description'].strip() != case['description'].strip() :
+                    uniq_list[-1]['description'] += ' :: '+case['description'].strip()
                 if len(uniq_list[-1]['description']) > 60:
                     uniq_list[-1]['description'] = uniq_list[-1]['description'][:60] + ' ...'
 
