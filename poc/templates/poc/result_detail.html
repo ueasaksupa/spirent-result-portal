@@ -15,7 +15,7 @@
             <div class="col-6">
                 <div class="float-right btn-group mr-2">
                     <a href="{% url 'poc:summary' test_set %}" class="btn btn-sm btn-outline-secondary">Summary</a>
-                    <a href="" class="btn btn-sm btn-outline-secondary">View all test</a>
+                    <a href="{% url 'poc:result' %}" class="btn btn-sm btn-outline-secondary">View all test</a>
                 </div>
             </div>
         </div>
@@ -31,6 +31,7 @@
                     <th>Service</th>
                     <th>BG</th>
                     <th>FPS</th>
+                    <th>drop %</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,6 +46,7 @@
                     <td>{{ row.service_type }}</td>
                     <td>{{ row.bg_service }}</td>
                     <td>{{ row.fps }}</td>
+                    <td>{{ row.drop_percent }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -59,6 +61,7 @@
                     <th>Service type</th>
                     <th>BG</th>
                     <th>FPS</th>
+                    <th>drop %</th>
                 </tr>
             </tfoot>
         </table>

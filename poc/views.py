@@ -66,7 +66,11 @@ def show_template(request):
 
 def show_result(request,test_set):
     try:
-        latest_flow = Flows.objects.filter(test_set=test_set)
+        queried_flow = Flows.objects.filter(test_set=test_set)
+        latest_flow = []
+        for row in queried_flow:
+            latest_flow.append( {'flow_name':row.flow_name, 'tx':row.tx, 'rx':row.rx, 'drop_count':row.drop_count, 'drop_time':row.drop_time, 'id':row.id,
+                                 'test_set':row.test_set, 'service_type':row.service_type, 'bg_service':row.bg_service, 'fps':row.fps, 'drop_percent':round((row.drop_count/row.tx)*100,5)} )
         try:
             desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
             context = {'latest_flow': latest_flow, 'desc':desc, 'test_set':test_set}
