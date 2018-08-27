@@ -175,8 +175,10 @@ class Document(models.Model):
                 continue
             ### check for tester error
             try:
-                drop_time = value[theader_index['Tx-Rx (Frames)']] / fps * 1000.0
+                drop_count = value[theader_index['Tx-Rx (Frames)']]
+                drop_time = drop_count / fps * 1000.0
             except:
+                drop_count = -1
                 drop_time = -1
             service_type, bg, Aend, Zend, direction = self.__extrac_service_flow(key)
             summary_key = Aend+'_'+Zend+'_'+bg+'_'+service_type
@@ -198,7 +200,7 @@ class Document(models.Model):
                         test_set=str(testcase),
                         tx=value[theader_index['Tx Count (Frames)']],
                         rx=value[theader_index['Rx Count (Frames)']],
-                        drop_count=value[theader_index['Tx-Rx (Frames)']],
+                        drop_count=drop_count,
                         drop_time=round(drop_time,2),
                         service_type=service_type,
                         bg_service=bg,
