@@ -98,7 +98,7 @@ class Document(models.Model):
         template_dict, template_header, theader_index = self.__open_collector(4,'Stream Block',MEDIA_DIR,'Advanced Sequencing')
         summary = {}
         insert_instances = []
-        mcast_srv_drop_list = []
+        mcast_srv_drop_list = [0]
         mcast_bg_drop_list = []
         time = timezone.now()
         if service_type == 'multicast_core':
