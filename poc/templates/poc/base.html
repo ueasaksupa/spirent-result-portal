@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    {% include 'poc/head.html' %}
-  </head>
-  <body>
-    {% include 'poc/navbar.html' %}
-    {% block content %}
-    {% endblock %}
-  </body>
+
+<head>
+	<title>
+		{% block title %}{% endblock %}
+	</title>
+	{% include 'poc/head.html' %}
+</head>
+
+<body>
+	{% include 'poc/navbar.html' %}
+	{% block content %}
+	{% endblock %}
+</body>
+
 </html>
