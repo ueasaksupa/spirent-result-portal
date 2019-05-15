@@ -13,5 +13,6 @@ urlpatterns = [
     path('result', views.show_all_results, name='result'),
     path('result/<int:test_set>', views.show_result, name='resultdetail'),
     path('result/summary/<int:test_set>', views.show_summary, name='summary'),
-    path('chart/<int:flow_id>', views.chart_view, name='chart')
+    path('chart/<int:flow_id>', views.chart_view, name='chart'),
+    path('server_side_endpoint', views.server_side_db_get, name='server-side-endpoint'),
 ]

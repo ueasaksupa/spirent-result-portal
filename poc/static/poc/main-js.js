@@ -50,6 +50,13 @@ $(document).ready(function () {
         order: [
             [0, "desc"]
         ],
+        /* Tell the DataTable that we need server-side processing. */
+        serverSide: true,
+        processing: true,
+        /* Set up the data source */
+        ajax: {
+            url: "/server_side_endpoint"
+        },
     });
 
     $('#edit_remark_modal').on('show.bs.modal', function (e) {

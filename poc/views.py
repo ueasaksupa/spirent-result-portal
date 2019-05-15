@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404,get_list_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect,JsonResponse
 from django.urls import reverse
 from django.conf import settings
 from django.db.models import Max
@@ -82,27 +82,7 @@ def show_result(request,test_set):
         return render(request, 'poc/result_detail.html')
 
 def show_all_results(request):
-    try:
-        uniq_set = {}
-        uniq_list = []
-        alltestcases = Document.objects.order_by('test_set').values('test_set','description','remark','uploaded_at').distinct()
-        for case in alltestcases:
-            if case['test_set'] not in uniq_set:
-                uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':case['uploaded_at'] } )
-                uniq_set[case['test_set']] = True
-            else:
-                if case['description'].strip() not in uniq_list[-1]['description'].strip():
-                    uniq_list[-1]['description'] += ' :: '+case['description'].strip()
-                if len(uniq_list[-1]['description']) > 60:
-                    uniq_list[-1]['description'] = uniq_list[-1]['description'][:60] + ' ...'
-
-        context = {'alltestcases': uniq_list , 'desc':"All Testcases Results"}
-        return render(request, 'poc/results.html', context)
-    except Flows.DoesNotExist:
-        return render(request, 'poc/results.html')
-
-# def show_stat(request):
-#     return render(request, 'poc/home.html')
+    return render(request, 'poc/results.html')
 
 def show_summary(request, test_set):
     try:
@@ -127,6 +107,49 @@ def edit_remark(request):
             record.remark = remark
             record.save()
         return HttpResponseRedirect(reverse('poc:result'))
+
+def server_side_db_get(request):
+    ## SELECT Fields
+    fields = ['test_set','description','remark','operation','uploaded_at']
+    ## Pre-define variable from datatable pagination GET request.
+    draw = request.GET['draw']
+    start = int(request.GET['start'])
+    length = int(request.GET['length'])
+    order_column = int(request.GET['order[0][column]'])
+    direction = request.GET['order[0][dir]']
+    search_word = request.GET['search[value]']
+    # print (request.GET,'--------------------')
+
+    ## Query and prepare respond
+    respond = {'draw':draw}
+    data = []
+    uniq_set = {}
+    uniq_list = []
+    if direction == 'asc':
+        alltestcases = Document.objects.order_by(fields[order_column]).filter(Q(test_set__icontains=search_word) | Q(description__icontains=search_word) | Q(remark__icontains=search_word))\
+            .values('test_set','description','remark','uploaded_at').distinct()
+    elif direction == 'desc':
+        alltestcases = Document.objects.order_by('-'+fields[order_column]).filter(Q(test_set__icontains=search_word) | Q(description__icontains=search_word) | Q(remark__icontains=search_word))\
+            .values('test_set','description','remark','uploaded_at').distinct()
+    ## prepare data for respond
+    for case in alltestcases:
+        if case['test_set'] not in uniq_set:
+            uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':case['uploaded_at'] } )
+            uniq_set[case['test_set']] = True
+        else:
+            if case['description'].strip() not in uniq_list[-1]['description'].strip():
+                uniq_list[-1]['description'] += ' :: '+case['description'].strip()
+            if len(uniq_list[-1]['description']) > 60:
+                uniq_list[-1]['description'] = uniq_list[-1]['description'][:40] + ' ...'
+    for row in uniq_list:
+        description_field = """<a href="/result/{1}">{0}</a>""".format(row['description'], row['test_set'])
+        link_field = """<a href="#my_modal" data-toggle="modal" data-target="#edit_remark_modal" data-text="{0}" data-set="{1}">Edit remark</a>""".format(row['remark'],row['test_set'])
+        data.append([row['test_set'], description_field, row['remark'], link_field, row['uploaded_at']])
+
+    respond['data'] = data[start:length+start]
+    respond['recordsTotal'] = len(data)
+    respond['recordsFiltered'] = len(data)
+    return JsonResponse(respond)
 
 def chart_view(request, flow_id):
     flow_name = get_object_or_404(Flows, id=flow_id).flow_name
