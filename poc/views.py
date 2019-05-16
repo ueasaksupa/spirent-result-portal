@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.db.models import Max
 from django.db.models import Q
+from django.utils import timezone
 
 from django.core.files.storage import FileSystemStorage
 from chartit import DataPool, Chart
@@ -144,7 +145,7 @@ def server_side_db_get(request):
     for row in uniq_list:
         description_field = """<a href="/result/{1}">{0}</a>""".format(row['description'], row['test_set'])
         link_field = """<a href="#my_modal" data-toggle="modal" data-target="#edit_remark_modal" data-text="{0}" data-set="{1}">Edit remark</a>""".format(row['remark'],row['test_set'])
-        data.append([row['test_set'], description_field, row['remark'], link_field, row['uploaded_at']])
+        data.append([row['test_set'], description_field, row['remark'], link_field, timezone.localtime(row['uploaded_at']).strftime("%a %d-%b-%Y %H:%M:%S UTC+7")])
 
     respond['data'] = data[start:length+start]
     respond['recordsTotal'] = len(data)
