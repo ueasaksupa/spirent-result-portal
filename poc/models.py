@@ -37,7 +37,7 @@ class Document(models.Model):
         ###
         index_cell = chr(ord('A') + column_header_index[key_index])
         start_cell_id = ord('A')
-        for row in range(start_collect_row+1,1000):
+        for row in range(start_collect_row+1,1500):
             for col in range(0,25):
                 iter = chr(start_cell_id+col)+str(row)
                 if worksheet[iter].value != None:
