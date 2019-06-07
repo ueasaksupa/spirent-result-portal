@@ -68,7 +68,7 @@ $(document).ready(function () {
 		$(e.currentTarget).find('input[name="test_set"]').val(set);
 	});
 	
-	$("input[name|='testcase']").change(function(){
+	$("input[name|='myfile']").click(function(){
 		$.ajax({
 			url: "auto/form",
 			type: "get", //send it through get method
