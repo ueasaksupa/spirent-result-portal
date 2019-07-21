@@ -90,11 +90,11 @@ class testTry(models.Model):
 					else:
 						percent_drop = float(drop_count) / float(tx) * 100
 					if flow_name.startswith('S1'):
-						stream_set = 'set1'
+						stream_set = '1'
 					elif flow_name.startswith('S2'):
-						stream_set = 'set2'
+						stream_set = '2'
 					elif flow_name.startswith('S3'):
-						stream_set = 'set3'
+						stream_set = '3'
 					else:
 						stream_set = 'other'
 					bulk_instance.append(

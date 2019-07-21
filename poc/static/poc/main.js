@@ -43,7 +43,7 @@ $(document).ready(function () {
 		},
 	});
 
-	$('#table_alltestcases').DataTable({
+	$('#table_alltestcases, #result-report').DataTable({
 		orderCellsTop: true,
 		fixedHeader: true,
 		pageLength: 50,

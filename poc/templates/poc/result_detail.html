@@ -3,7 +3,7 @@
 {% load static %}
 {% load mathfilters %}
 
-{% block title %}{{ desc }}{% endblock %}
+{% block title %}Result detail{% endblock %}
 
 
 {% block content %}
@@ -55,7 +55,11 @@
 					<td>{{ row.drop_time }}</td>
 					<td>{{ row.percent_drop }}</td>
 					<td>{{ row.test_no }}</td>
-					<td>{{ row.stream_set }}</td>
+					{% if 'mul' not in row.stream_set and 'other' not in row.stream_set %}
+						<td>set{{ row.stream_set }}</td>
+					{% else %}
+						<td>{{ row.stream_set }}</td>
+					{% endif %}
 				</tr>
 			{% endfor %}
 			</tbody>
