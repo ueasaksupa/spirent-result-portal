@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from .models import FlowTemplate, Document, Flows, FlowSummary
+from .models import testCase, testResult, testTry, testUpload, mcastFPS
 # Register your models here.
-admin.site.register(Flows)
-admin.site.register(FlowTemplate)
-admin.site.register(Document)
-admin.site.register(FlowSummary)
-
+admin.site.register(testCase)
+admin.site.register(testTry)
+admin.site.register(testResult)
+admin.site.register(testUpload)
+admin.site.register(mcastFPS)

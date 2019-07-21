@@ -42,3 +42,16 @@ table {
 .btn-outline-primary {
     width: 56px;
 }
+
+.topology-div{
+	height: 100%;
+	width: 100%;
+}
+
+.padding{
+	padding: 10px 0px 10px 0px;
+}
+
+.inline{
+	display: inline;
+}

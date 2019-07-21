@@ -1,0 +1,89 @@
+{% extends 'poc/base.html' %}
+
+{% load static %}
+
+{% block title %}PoC Result{% endblock %}
+
+{% block content %}
+
+<div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
+	<div class="row">
+		<div class="col-6">
+			<h3 class="inline">
+				Testcase {{testcase_name.test_name}}.
+			</h3>
+			<h5 class="inline">
+				{{ testcase_name.test_description }}
+			</h5>
+		</div>
+		<div class="col-6">
+			<div class="float-right btn-group mr-2">
+				<a href="{% url 'poc:results' %}" class="btn btn-sm btn-outline-secondary">View all test</a>
+			</div>
+			<div class="float-right btn-group mr-2">
+				<a href="{% url 'poc:resultdetail' testno %}" class="btn btn-sm btn-outline-secondary">Result Detail</a>
+			</div>
+		</div>
+	</div>
+	<table id="table_summary" class="display">
+		<thead>
+			<tr>
+				<th>StreamSet</th>
+				<th>Scenario</th>
+				<th>IPv4</th>
+				<th>IPv6</th>
+				<th>Dead IPv4</th>
+				<th>Dead IPv6</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for row in summary.set1 %}
+			{% if row.scenerio != 0 %}
+			<tr>
+				<td>set1</td>
+				<td>{{ row.scenerio }}</td>
+				<td>{{ row.ipv4.drop_time }}</td>
+				<td>{{ row.ipv6.drop_time }}</td>
+				<td>{{ row.ipv4.dead }}</td>
+				<td>{{ row.ipv6.dead }}</td>
+			</tr>
+			{% endif %}
+		{% endfor %}
+		{% for row in summary.set2 %}
+			{% if row.scenerio != 0 %}
+			<tr>
+				<td>set2</td>
+				<td>{{ row.scenerio }}</td>
+				<td>{{ row.ipv4.drop_time }}</td>
+				<td>{{ row.ipv6.drop_time }}</td>
+				<td>{{ row.ipv4.dead }}</td>
+				<td>{{ row.ipv6.dead }}</td>
+			</tr>
+			{% endif %}
+		{% endfor %}
+		{% for row in summary.set3 %}
+			{% if row.scenerio != 0 %}
+			<tr>
+				<td>set3</td>
+				<td>{{ row.scenerio }}</td>
+				<td>{{ row.ipv4.drop_time }}</td>
+				<td>{{ row.ipv6.drop_time }}</td>
+				<td>{{ row.ipv4.dead }}</td>
+				<td>{{ row.ipv6.dead }}</td>
+			</tr>
+			{% endif %}
+		{% endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+				<th>StreamSet</th>
+				<th>Scenario</th>
+				<th>IPv4</th>
+				<th>IPv6</th>
+				<th>Dead IPv4</th>
+				<th>Dead IPv6</th>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+{% endblock %}

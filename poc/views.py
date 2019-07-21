@@ -9,162 +9,126 @@ from django.utils import timezone
 from django.core.files.storage import FileSystemStorage
 from chartit import DataPool, Chart
 # Create your views here.
+import re
+from .models import testCase, testResult, testTry, testUpload, mcastFPS
 
-from .models import Document, Flows, FlowTemplate, FlowSummary
-
-def template_upload_handler(request):
-	if request.method == 'POST' and request.FILES['myfile']:
-		myfile = request.FILES['myfile']
-		fs = FileSystemStorage()
-		filename = fs.save(myfile.name, myfile)
-		uploaded_file_url = fs.url(filename)
-		doctype = request.POST['doctype']
-		
-		# save file path to DB
-		d = Document(path=uploaded_file_url, description=request.POST['description'])
-		d.save()
-		# save fps template
-		d.upload_template(doctype=doctype)
-
-		return HttpResponseRedirect(reverse('poc:showtemplate'))
-	else:
-		return render(request, 'poc/upload_template.html')
 
 def result_upload_handler(request):
-	if request.method == 'POST' and request.FILES['myfile']:
-		myfile = request.FILES['myfile']
-		fs = FileSystemStorage()
-		filename = fs.save(myfile.name, myfile)
-		uploaded_file_url = fs.url(filename)
-		doctype = request.POST['doctype']
-		description = 'no description' if request.POST['description'] == '' else request.POST['description']
-		# save file path to DB
-		data = Document(path=uploaded_file_url, description=description, test_set=request.POST['testcase'])
-		data.save()
-		# calculate result
-		if request.POST['service_type'] == 'other':
-			try:
-				data.save_other_service_result(request.POST['testcase'], doctype)
-			except:
-				return render(request, 'poc/error.html')
-		else:
-			try:
-				data.save_multicast_service_result(request.POST['testcase'], request.POST['service_type'], doctype)
-			except:
-				return render(request, 'poc/error.html')
-		return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testcase'],)))
-	else:
-		latest_flow_set = Document.objects.all().aggregate(Max('test_set'))
-		return render(request, 'poc/upload_result.html', latest_flow_set)    
-
-def show_template(request):
-	try:
-		latest_flow_template = FlowTemplate.objects.all()
-		context = {'latest_flow_template': latest_flow_template}
-		return render(request, 'poc/flowtemplate.html', context)
-	except FlowTemplate.DoesNotExist:
-		return render(request, 'poc/flowtemplate.html')
-
-def show_result(request,test_set):
-	try:
-		queried_flow = Flows.objects.filter(test_set=test_set)
-		latest_flow = []
-		for row in queried_flow:
-			latest_flow.append( {'flow_name':row.flow_name, 'tx':row.tx, 'rx':row.rx, 'drop_count':row.drop_count, 'drop_time':row.drop_time, 'id':row.id,
-								 'test_set':row.test_set, 'service_type':row.service_type, 'bg_service':row.bg_service, 'fps':row.fps,
-								 'drop_percent':'N/A' if row.rx <= 0 else round((row.drop_count/row.tx)*100,5)} )
+	#####
+	## for after upload result
+	#####
+	if request.method == 'POST' and request.POST['testresult']:
+		testupload = testUpload(csv_result=request.POST['testresult'])
+		testupload.save()
 		try:
-			desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
-			context = {'latest_flow': latest_flow, 'desc':desc, 'test_set':test_set}
-		except IndexError:
-			context = {'latest_flow': latest_flow, 'desc':'no description', 'test_set':test_set}
+			tt = testTry.objects.get(test_no=request.POST['testno'])
+			tt.result_process(request.POST['testresult'], request.POST['testno'], request.POST['testcase'], testupload.id)
+			# return render(request, 'poc/upload_result.html')
+			return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testno'],)))
+		except testTry.DoesNotExist:
+			result = testTry(test_no=request.POST['testno'], testcase_id=request.POST['testcase'])
+			result.save()
+			result.result_process(request.POST['testresult'], request.POST['testno'], request.POST['testcase'], testupload.id)
+			return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testno'],)))
+
+	#####
+	## for before upload result
+	#####
+	else:
+		testcase = testCase.objects.all().order_by('test_name')
+		latest_testtry = testTry.objects.all().aggregate(Max('test_no'))
+		test_case = testTry.objects.select_related("testcase").get(test_no=latest_testtry['test_no__max'])
+		context = {'testcase': testcase, 'latest_testtry':latest_testtry, 'test_case_name':test_case}
+		return render(request, 'poc/upload_result.html', context)
+
+def show_result_summary(request, testno):
+	output_list = {'set1':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(32)],\
+					'set2':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(26)],\
+					'set3':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(26)],\
+					}
+	# try:
+	queried_flow = testResult.objects.select_related('testtry').filter(testtry__test_no=testno)
+	testcase_name =queried_flow[0].testcase
+
+	for row in queried_flow:
+		scenerio = row.flow_name.split('_')[1]
+		address_family = 'ipv6' if 'IPv6' in row.flow_name else 'ipv4'
+		if row.flow_name.startswith('S1') and 'MCAST' not in row.flow_name:
+			scenerio = int(scenerio)
+			if output_list['set1'][scenerio-1][address_family]['drop_time'] < row.drop_time:
+				output_list['set1'][scenerio-1][address_family]['drop_time'] = row.drop_time
+			output_list['set1'][scenerio-1]['scenerio'] = scenerio
+			if row.tx - row.rx != 0 :
+				output_list['set1'][scenerio-1][address_family]['dead'] = 'yes' if (((row.tx - row.rx) - row.drop_count) /(row.tx - row.rx)) *100  > 30 else 'no'
+			else:
+				output_list['set1'][scenerio-1][address_family]['dead'] = 'no'
+		elif row.flow_name.startswith('S2') and 'MCAST' not in row.flow_name:
+			scenerio = int(scenerio)
+			if output_list['set2'][scenerio-1][address_family]['drop_time'] < row.drop_time:
+				output_list['set2'][scenerio-1][address_family]['drop_time'] = row.drop_time
+			output_list['set2'][scenerio-1]['scenerio'] = scenerio
+			if row.tx - row.rx != 0 :
+				output_list['set2'][scenerio-1][address_family]['dead'] = 'yes' if (((row.tx - row.rx) - row.drop_count) /(row.tx - row.rx)) *100  > 30 else 'no'
+			else:
+				output_list['set2'][scenerio-1][address_family]['dead'] = 'no'
+		elif row.flow_name.startswith('S3') and 'MCAST' not in row.flow_name:
+			scenerio = int(scenerio)
+			if output_list['set3'][scenerio-1][address_family]['drop_time'] < row.drop_time:
+				output_list['set3'][scenerio-1][address_family]['drop_time'] = row.drop_time
+			output_list['set3'][scenerio-1]['scenerio'] = scenerio
+			if row.tx - row.rx != 0 :
+				output_list['set3'][scenerio-1][address_family]['dead'] = 'yes' if (((row.tx - row.rx) - row.drop_count) /(row.tx - row.rx)) *100  > 30 else 'no'
+			else:
+				output_list['set3'][scenerio-1][address_family]['dead'] = 'no'
+
+		context = {'summary': output_list, 'testcase_name':testcase_name, 'testno':testno}
+	return render(request, 'poc/result_summary.html', context)
+
+def show_result_detail(request,testno):
+	try:
+		queried_flow = testResult.objects.select_related('testtry').filter(testtry__test_no=testno)
+		testcase_name =queried_flow[0].testcase
+		results = []
+		for row in queried_flow:
+			result_row = {}
+			result_row['flow_name'] = row.flow_name
+			result_row['id'] = row.id
+			result_row['rx'] = row.rx
+			result_row['tx'] = row.tx
+			result_row['drop_count'] = row.drop_count
+			result_row['drop_time'] = row.drop_time
+			if row.tx - row.rx != 0 :
+				result_row['dead'] = 'yes' if (((row.tx - row.rx) - row.drop_count) /(row.tx - row.rx)) *100  > 30 else 'no'
+			else:
+				result_row['dead'] = 'no'
+			result_row['percent_drop'] = row.percent_drop
+			result_row['test_no'] = row.testtry.test_no
+			result_row['stream_set'] = row.stream_set
+			results.append(result_row)
+
+		context = {'results': results, 'testcase_name':testcase_name, 'testno':testno}
 		return render(request, 'poc/result_detail.html', context)
-	except Flows.DoesNotExist:
+	except testResult.DoesNotExist:
 		return render(request, 'poc/result_detail.html')
 
-def show_all_results(request):
-	return render(request, 'poc/results.html')
-
-def show_summary(request, test_set):
-	try:
-		summary_flow = FlowSummary.objects.filter(test_set=test_set)
-		try:
-			desc = Document.objects.filter( ~Q(description='') , test_set=test_set )[0].description
-			context = {'summary_flow': summary_flow, 'desc':"Summary result for: "+desc, 'test_set':test_set}
-		except IndexError:
-			context = {'latest_flow': latest_flow, 'desc':'no description', 'test_set':test_set}
-		return render(request, 'poc/summary.html', context)
-	except Flows.DoesNotExist:
-		return render(request, 'poc/summary.html')
+def show_result_all(request):
+	queried_flow = testTry.objects.select_related('testcase')
+	context = {'rows': queried_flow}
+	return render(request, 'poc/results.html', context)
 
 def edit_remark(request):
 	if request.method == 'POST':
-		test_set = request.POST['test_set']
+		test_no = request.POST['test_no']
 		remark = request.POST['remark']
-		
-		print (test_set, remark)
-		doc = Document.objects.filter(test_set=test_set)
-		for record in doc:
-			record.remark = remark
-			record.save()
-		return HttpResponseRedirect(reverse('poc:result'))
+		# print (test_no, remark)
+		doc = testTry.objects.filter(test_no=test_no).update(remark=remark)
 
-def auto_form(request):
-	tc = request.GET['testcase']
-	respond = {}
-	try:
-		desc = Document.objects.filter(test_set=tc)[0].description
-		respond['description'] = desc
-	except IndexError:
-		respond['description'] = ""
-
-	return JsonResponse(respond)
-
-def server_side_db_get(request):
-	## SELECT Fields
-	fields = ['test_set','description','remark','operation','uploaded_at']
-	## Pre-define variable from datatable pagination GET request.
-	draw = request.GET['draw']
-	start = int(request.GET['start'])
-	length = int(request.GET['length'])
-	order_column = int(request.GET['order[0][column]'])
-	direction = request.GET['order[0][dir]']
-	search_word = request.GET['search[value]']
-	# print (request.GET,'--------------------')
-
-	## Query and prepare respond
-	respond = {'draw':draw}
-	data = []
-	uniq_set = {}
-	uniq_list = []
-	if direction == 'asc':
-		alltestcases = Document.objects.order_by(fields[order_column]).filter(Q(test_set__icontains=search_word) | Q(description__icontains=search_word) | Q(remark__icontains=search_word))\
-			.values('test_set','description','remark','uploaded_at').distinct()
-	elif direction == 'desc':
-		alltestcases = Document.objects.order_by('-'+fields[order_column]).filter(Q(test_set__icontains=search_word) | Q(description__icontains=search_word) | Q(remark__icontains=search_word))\
-			.values('test_set','description','remark','uploaded_at').distinct()
-	## prepare data for respond
-	for case in alltestcases:
-		if case['test_set'] not in uniq_set:
-			uniq_list.append( {'test_set':case['test_set'], 'description':case['description'], 'remark':case['remark'], 'uploaded_at':case['uploaded_at'] } )
-			uniq_set[case['test_set']] = True
-		else:
-			if case['description'].strip() not in uniq_list[-1]['description'].strip():
-				uniq_list[-1]['description'] += ' :: '+case['description'].strip()
-			if len(uniq_list[-1]['description']) > 60:
-				uniq_list[-1]['description'] = uniq_list[-1]['description'][:40] + ' ...'
-	for row in uniq_list:
-		description_field = """<a href="/result/{1}">{0}</a>""".format(row['description'], row['test_set'])
-		link_field = """<a href="#my_modal" data-toggle="modal" data-target="#edit_remark_modal" data-text="{0}" data-set="{1}">Edit remark</a>""".format(row['remark'],row['test_set'])
-		data.append([row['test_set'], description_field, row['remark'], link_field, timezone.localtime(row['uploaded_at']).strftime("%a %d-%b-%Y %H:%M:%S UTC+7")])
-
-	respond['data'] = data[start:length+start]
-	respond['recordsTotal'] = len(data)
-	respond['recordsFiltered'] = len(data)
-	return JsonResponse(respond)
+		return HttpResponseRedirect(reverse('poc:results'))
 
 def chart_view(request, flow_id):
-	flow_name = get_object_or_404(Flows, id=flow_id).flow_name
+	flow_name = get_object_or_404(testResult, id=flow_id).flow_name
+	testcase_id = get_object_or_404(testResult, id=flow_id).testcase_id
+	test_description = get_object_or_404(testCase, id=testcase_id).test_description
 
 	#From Chartit.
 	#Step 1: Create a DataPool with the data we want to retrieve.
@@ -172,7 +136,7 @@ def chart_view(request, flow_id):
 		series=
 		[
 			{
-			 'options': { 'source': Flows.objects.filter(flow_name=flow_name).order_by('-pub_date')[:100] },
+			 'options': { 'source': testResult.objects.filter(flow_name=flow_name ,testcase_id=testcase_id).order_by('pub_date')[:40] },
 			 'terms': ['pub_date','drop_time']
 			 }
 		]
@@ -192,10 +156,22 @@ def chart_view(request, flow_id):
 		chart_options =
 		{
 			'chart': {'backgroundColor': '#f2f2f2'},
-			'title': {'text': 'Flow: '+flow_name},
+			'title': {'text': 'Flow: '+flow_name+' :: '+test_description},
 			'yAxis': {'title' : {'text': 'Drop Time (ms)' }},
 		}
 	)
 
 	#Step 3: Send the chart object to the template.
 	return render(request,'poc/chart.html', {'chart': cht})
+
+def ajax_form(request):
+	testno = request.GET['testno']
+	respond = {}
+	try:
+		name = testTry.objects.select_related("testcase").get(test_no=testno).testcase.test_name
+		desc = testTry.objects.select_related("testcase").get(test_no=testno).testcase.test_description
+		respond['description'] = desc
+	except testTry.DoesNotExist:
+		respond['description'] = "Please select"
+
+	return JsonResponse(respond)
