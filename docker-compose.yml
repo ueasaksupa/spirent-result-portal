@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: mysqlpass
+      MYSQL_DATABASE: mysqldb
+
+  web:
+    # image: spirent-result-portal
+    build: .
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - db

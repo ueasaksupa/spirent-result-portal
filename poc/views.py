@@ -35,9 +35,13 @@ def result_upload_handler(request):
 	## for before upload result
 	#####
 	else:
-		testcase = testCase.objects.all().order_by('test_name')
-		latest_testtry = testTry.objects.all().aggregate(Max('test_no'))
-		test_case = testTry.objects.select_related("testcase").get(test_no=latest_testtry['test_no__max'])
+		try:
+			testcase = testCase.objects.all().order_by('test_name')
+			latest_testtry = testTry.objects.all().aggregate(Max('test_no'))
+			test_case = testTry.objects.select_related("testcase").get(test_no=latest_testtry['test_no__max'])
+		except testTry.DoesNotExist:
+			latest_testtry = 0
+			test_case = ''
 		context = {'testcase': testcase, 'latest_testtry':latest_testtry, 'test_case_name':test_case}
 		return render(request, 'poc/upload_result.html', context)
 
