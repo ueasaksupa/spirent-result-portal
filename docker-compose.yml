@@ -8,6 +8,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: mysqlpass
       MYSQL_DATABASE: mysqldb
+    volumes:
+      - .:/var/lib/mysql
 
   web:
     # image: spirent-result-portal
