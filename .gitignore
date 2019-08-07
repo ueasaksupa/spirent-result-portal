@@ -51,5 +51,4 @@ db.sqlite3
 __pycache__/
 *.py[cod]
 */migrations/*
-*/settings.py
 media/*
