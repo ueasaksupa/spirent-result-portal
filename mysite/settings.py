@@ -37,7 +37,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '-c&qt=71oi^e5s8(ene*$b89^#%*0xeve$x_trs91veok9#0h0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # SECURITY WARNING: App Engine's security features ensure that it is safe to
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
@@ -106,11 +106,11 @@ except ImportError:
 DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.mysql',
-		'HOST': 'db',
+		'HOST': 'localhost',
 		'PORT': '3306',
 		'NAME': 'mysqldb',
 		'USER': 'root',
-		'PASSWORD': 'mysqlpass',
+		'PASSWORD': '',
 	}
 }
 # [END db_setup]
@@ -133,11 +133,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_ROOT = 'static'
-# STATICFILES_DIRS = (
-#   os.path.join(BASE_DIR, 'static/'),
-# )
 STATIC_URL = '/static/'
-
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -3,6 +3,7 @@ cffi
 cryptography
 Django
 django-chartit
+django-mathfilters
 et-xmlfile
 idna
 jdcal
@@ -12,4 +13,3 @@ pycparser
 PyMySQL
 pytz
 six
-django-mathfilters
