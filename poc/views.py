@@ -12,6 +12,8 @@ from chartit import DataPool, Chart
 import re
 from .models import testCase, testResult, testTry, testUpload, mcastFPS
 
+def error_404_view(request, exception):
+	return render(request,'poc/404.html')
 
 def result_upload_handler(request):
 	#####
