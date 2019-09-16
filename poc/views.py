@@ -47,48 +47,6 @@ def result_upload_handler(request):
 		context = {'testcase': testcase, 'latest_testtry':latest_testtry, 'test_case_name':test_case}
 		return render(request, 'poc/upload_result.html', context)
 
-def find_top_3_drop_time(query):
-	return_value = []
-	stream_scenerio = set([])
-	for row in query:
-		if len(stream_scenerio) == 3:
-			break
-		flow_name = row.flow_name
-		scenerio = flow_name.split('_')[1]
-		if scenerio not in stream_scenerio:
-			stream_scenerio.add(scenerio)
-			return_value.append( (scenerio,row.drop_time) )
-	return return_value
-
-def show_result_report(request):
-	context = {"rows": []}
-	all_testcase = testCase.objects.raw("SELECT max(poc_testtry.test_no) as id, poc_testcase.test_name, poc_testcase.test_description FROM poc_testcase LEFT JOIN poc_testtry ON poc_testtry.testcase_id = poc_testcase.id GROUP BY poc_testcase.id")
-	for tc in all_testcase:
-		row = {}
-		print (tc.test_description)
-		row['test_description'] = tc.test_description
-		row['test_name'] = tc.test_name
-		######## set 1
-		q = testResult.objects.select_related('testtry').filter(testtry__test_no=tc.id, stream_set='1').order_by('-drop_time')
-		top_3 = find_top_3_drop_time(q)
-		row['set1'] = top_3
-		######## set 2
-		q = testResult.objects.select_related('testtry').filter(testtry__test_no=tc.id, stream_set='2').order_by('-drop_time')
-		top_3 = find_top_3_drop_time(q)
-		row['set2'] = top_3
-		######## set 3
-		q = testResult.objects.select_related('testtry').filter(testtry__test_no=tc.id, stream_set='3').order_by('-drop_time')
-		top_3 = find_top_3_drop_time(q)
-		row['set3'] = top_3
-		######## set MC
-		q = testResult.objects.select_related('testtry').filter(testtry__test_no=tc.id, stream_set='multicast').aggregate(Max('drop_time'))
-		row['multicast'] = str(q['drop_time__max'])
-
-		context['rows'].append(row)
-	print(context['rows'])
-	return render(request, 'poc/result_report.html', context)
-
-
 def show_result_summary(request, testno):
 	output_list = {'set1':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(32)],\
 					'set2':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(26)],\
