@@ -89,7 +89,9 @@ class testTry(models.Model):
 						percent_drop = -1
 					else:
 						percent_drop = float(drop_count) / float(tx) * 100
-					if flow_name.startswith('S1'):
+					if "MCAST" in flow_name:
+						stream_set = 'multicast'
+					elif flow_name.startswith('S1'):
 						stream_set = '1'
 					elif flow_name.startswith('S2'):
 						stream_set = '2'
