@@ -1,17 +1,33 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
+	<head>
+		<title>
+			{% block title %}{% endblock %}
+		</title>
+		{% include 'poc/head.html' %}
+	</head>
 
-<head>
-	<title>
-		{% block title %}{% endblock %}
-	</title>
-	{% include 'poc/head.html' %}
-</head>
-
-<body>
-	{% include 'poc/navbar.html' %}
-	{% block content %}
-	{% endblock %}
-</body>
-
+	<body>
+		{% include 'poc/navbar.html' %}
+		{% block content %}
+		{% endblock %}
+		<!-- Bootstrap jquery -->
+		<script src="{% static 'poc/BTjquery/jquery.min.js' %}"></script>
+		<script src="{% static 'poc/BTjquery/popper.min.js' %}"></script>
+		<script src="{% static 'poc/BTjquery/bootstrap.min.js' %}"></script>
+		<!-- datatable -->
+		<script src="{% static 'poc/datatable/jquery.dataTables.min.js' %}"></script>
+		<!-- Chart -->
+		<script src="https://code.highcharts.com/highcharts.src.js"></script>
+		<!-- datatable export -->
+		<script src="{% static 'poc/datatable/pdfmake.min.js' %}"></script>
+		<script src="{% static 'poc/datatable/dataTables.buttons.min.js' %}"></script>
+		<script src="{% static 'poc/datatable/buttons.flash.min.js' %}"></script>
+		<script src="{% static 'poc/datatable/buttons.html5.min.js' %}"></script>
+		<script src="{% static 'poc/datatable/vfs_fonts.js' %}"></script>
+		<script src="{% static 'poc/datatable/jszip.min.js' %}"></script>
+		<!-- Custom JS -->
+		<script type="text/javascript" src="{% static 'poc/main.js' %}" /></script>
+	</body>
 </html>

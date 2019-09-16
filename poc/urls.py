@@ -13,4 +13,5 @@ urlpatterns = [
 	path('chart/<int:flow_id>', views.chart_view, name='chart'),
 	# path('server_side_endpoint', views.server_side_db_get, name='server-side-endpoint'),
 	path('ajax/form', views.ajax_form, name='ajaxform'),
+	path('settings', views.settings_page, name='settings'),
 ]

@@ -120,7 +120,7 @@ $(document).ready(function () {
 	$("input[type=number]").bind('keyup input', function(){
 		$.ajax({
 			url: "ajax/form",
-			type: "get", //send it through get method
+			type: "get",
 			data: { 
 			  testno: $("input[name|='testno']").val()
 			},

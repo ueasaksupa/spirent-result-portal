@@ -181,3 +181,6 @@ def ajax_form(request):
 		respond['description'] = "Please select"
 
 	return JsonResponse(respond)
+
+def settings_page(request):
+	return render(request, 'poc/settings.html')

@@ -30,11 +30,6 @@ table {
     /* table-layout:fixed; */
 }
 
-.radio {
-    margin-left: 20px;
-    margin-right: 50px;
-}
-
 .export-btn-grp {
     margin-left: 15px;
 }
@@ -43,15 +38,18 @@ table {
     width: 56px;
 }
 
-.topology-div{
-	height: 100%;
-	width: 100%;
-}
-
-.padding{
-	padding: 10px 0px 10px 0px;
-}
-
 .inline{
 	display: inline;
+}
+.description-box{
+    font-size: 0.7em;
+}
+.setting-card{
+    background:#efefef;
+    margin: 3%;
+    padding: 2%;
+    border: 1px solid #E5E5E5;
+}
+.bg-dark {
+    background-color: #3d4c5a!important;
 }
