@@ -10,7 +10,7 @@ from django.core.files.storage import FileSystemStorage
 from chartit import DataPool, Chart
 # Create your views here.
 import re
-from .models import testCase, testResult, testTry, testUpload, mcastFPS
+from .models import testCase, testResult, testTry, testUpload, settings
 
 def error_404_view(request, exception):
 	return render(request,'poc/404.html')
@@ -19,18 +19,57 @@ def result_upload_handler(request):
 	#####
 	## for after upload result
 	#####
+	trigger_warning = False
 	if request.method == 'POST' and request.POST['testresult']:
 		testupload = testUpload(csv_result=request.POST['testresult'])
 		testupload.save()
+		###
+		# this block is for existing test no.
+		###
 		try:
 			tt = testTry.objects.get(test_no=request.POST['testno'])
-			tt.result_process(request.POST['testresult'], request.POST['testno'], request.POST['testcase'], testupload.id)
+			## check if all data can store correctly in data
+			result_process_output = tt.result_process(request.POST['testresult'], request.POST['testno'], request.POST['testcase'], testupload.id)
+			if result_process_output != 0:
+			## if any error happend in this process not store any data and push alert
+			## render same upload page with alert
+				try:
+					testcase = testCase.objects.all().order_by('test_name')
+					latest_testtry = testTry.objects.all().aggregate(Max('test_no'))
+					test_case = testTry.objects.select_related("testcase").get(test_no=latest_testtry['test_no__max'])
+				except testTry.DoesNotExist:
+					latest_testtry = {'test_no__max':1}
+					test_case = ''
+				trigger_warning = True
+				error_msg = f"Found problem in result line {result_process_output[1]} . Please check if the CSV format is vaild or not." 
+				context = {'testcase': testcase, 'latest_testtry':latest_testtry, 'test_case_name':test_case, 'trigger_warning': trigger_warning, "error_msg": error_msg}
+				return render(request, 'poc/upload_result.html', context)
 			# return render(request, 'poc/upload_result.html')
 			return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testno'],)))
+		###
+		# this block is for new test no.
+		###
 		except testTry.DoesNotExist:
 			result = testTry(test_no=request.POST['testno'], testcase_id=request.POST['testcase'])
 			result.save()
-			result.result_process(request.POST['testresult'], request.POST['testno'], request.POST['testcase'], testupload.id)
+			## check if all data can store correctly in data
+			result_process_output = result.result_process(request.POST['testresult'], request.POST['testno'], request.POST['testcase'], testupload.id)
+			if result_process_output != 0:
+			## if any error happend in this process not store any data and push alert
+			## render same upload page with alert
+				## delete current testTry because of it error.
+				testTry.objects.filter(test_no=request.POST['testno']).delete()
+				try:
+					testcase = testCase.objects.all().order_by('test_name')
+					latest_testtry = testTry.objects.all().aggregate(Max('test_no'))
+					test_case = testTry.objects.select_related("testcase").get(test_no=latest_testtry['test_no__max'])
+				except testTry.DoesNotExist:
+					latest_testtry = {'test_no__max':1}
+					test_case = ''
+				trigger_warning = True
+				error_msg = f"Found a problem in result line {result_process_output[1]} . Please check if the CSV format from spirent is vaild or not." 
+				context = {'testcase': testcase, 'latest_testtry':latest_testtry, 'test_case_name':test_case, 'trigger_warning': trigger_warning, "error_msg": error_msg}
+				return render(request, 'poc/upload_result.html', context)
 			return HttpResponseRedirect(reverse('poc:resultdetail', args=(request.POST['testno'],)))
 
 	#####
@@ -42,58 +81,23 @@ def result_upload_handler(request):
 			latest_testtry = testTry.objects.all().aggregate(Max('test_no'))
 			test_case = testTry.objects.select_related("testcase").get(test_no=latest_testtry['test_no__max'])
 		except testTry.DoesNotExist:
-			latest_testtry = 0
+			latest_testtry = {'test_no__max':1}
 			test_case = ''
-		context = {'testcase': testcase, 'latest_testtry':latest_testtry, 'test_case_name':test_case}
+		context = {'testcase': testcase, 'latest_testtry':latest_testtry, 'test_case_name':test_case, 'trigger_warning': trigger_warning}
 		return render(request, 'poc/upload_result.html', context)
-
-def show_result_summary(request, testno):
-	output_list = {'set1':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(32)],\
-					'set2':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(26)],\
-					'set3':[{'scenerio':0, 'ipv4':{'drop_time':0, 'dead':'no'}, 'ipv6':{'drop_time':0, 'dead':'no'}} for i in range(26)],\
-					}
-	# try:
-	queried_flow = testResult.objects.select_related('testtry').filter(testtry__test_no=testno)
-	testcase_name =queried_flow[0].testcase
-
-	for row in queried_flow:
-		scenerio = row.flow_name.split('_')[1]
-		address_family = 'ipv6' if 'IPv6' in row.flow_name else 'ipv4'
-		if row.flow_name.startswith('S1') and 'MCAST' not in row.flow_name:
-			scenerio = int(scenerio)
-			if output_list['set1'][scenerio-1][address_family]['drop_time'] < row.drop_time:
-				output_list['set1'][scenerio-1][address_family]['drop_time'] = row.drop_time
-			output_list['set1'][scenerio-1]['scenerio'] = scenerio
-			if row.tx - row.rx != 0 :
-				output_list['set1'][scenerio-1][address_family]['dead'] = 'yes' if (((row.tx - row.rx) - row.drop_count) /(row.tx - row.rx)) *100  > 30 else 'no'
-			else:
-				output_list['set1'][scenerio-1][address_family]['dead'] = 'no'
-		elif row.flow_name.startswith('S2') and 'MCAST' not in row.flow_name:
-			scenerio = int(scenerio)
-			if output_list['set2'][scenerio-1][address_family]['drop_time'] < row.drop_time:
-				output_list['set2'][scenerio-1][address_family]['drop_time'] = row.drop_time
-			output_list['set2'][scenerio-1]['scenerio'] = scenerio
-			if row.tx - row.rx != 0 :
-				output_list['set2'][scenerio-1][address_family]['dead'] = 'yes' if (((row.tx - row.rx) - row.drop_count) /(row.tx - row.rx)) *100  > 30 else 'no'
-			else:
-				output_list['set2'][scenerio-1][address_family]['dead'] = 'no'
-		elif row.flow_name.startswith('S3') and 'MCAST' not in row.flow_name:
-			scenerio = int(scenerio)
-			if output_list['set3'][scenerio-1][address_family]['drop_time'] < row.drop_time:
-				output_list['set3'][scenerio-1][address_family]['drop_time'] = row.drop_time
-			output_list['set3'][scenerio-1]['scenerio'] = scenerio
-			if row.tx - row.rx != 0 :
-				output_list['set3'][scenerio-1][address_family]['dead'] = 'yes' if (((row.tx - row.rx) - row.drop_count) /(row.tx - row.rx)) *100  > 30 else 'no'
-			else:
-				output_list['set3'][scenerio-1][address_family]['dead'] = 'no'
-
-		context = {'summary': output_list, 'testcase_name':testcase_name, 'testno':testno}
-	return render(request, 'poc/result_summary.html', context)
 
 def show_result_detail(request,testno):
 	try:
 		queried_flow = testResult.objects.select_related('testtry').filter(testtry__test_no=testno)
 		testcase_name =queried_flow[0].testcase
+		settings_object = settings.objects.first()
+		delimiter = settings_object.delimiter
+		Aend_index = settings_object.Aend_index
+		Zend_index = settings_object.Zend_index
+		tag_index = settings_object.tag_index
+		
+		trigger_warning = False
+		result_dict = {}
 		results = []
 		for row in queried_flow:
 			result_row = {}
@@ -109,12 +113,123 @@ def show_result_detail(request,testno):
 				result_row['dead'] = 'no'
 			result_row['percent_drop'] = row.percent_drop
 			result_row['test_no'] = row.testtry.test_no
-			result_row['stream_set'] = row.stream_set
+			flow_name_sp_list = row.flow_name.split(delimiter)
+			try:
+				result_row['custom_col'] = {
+					'source': flow_name_sp_list[Aend_index],
+					'destination': flow_name_sp_list[Zend_index],
+					'tag': flow_name_sp_list[tag_index]
+				}
+				result_row['is_custom_col_vaild'] = True
+				if row.flow_name not in result_dict:
+					update = {
+						row.flow_name: {
+							"tx": row.tx,
+							"rx": row.rx,
+							"id": row.id,
+							"drop_count": row.drop_count,
+							"drop_time": row.drop_time,
+							"percent_drop": row.percent_drop,
+							"test_no": row.testtry.test_no,
+							"custom_col": {
+								'source': flow_name_sp_list[Aend_index],
+								'destination': flow_name_sp_list[Zend_index],
+								'tag': flow_name_sp_list[tag_index]
+							},
+							"is_custom_col_vaild": True
+						}
+					}
+					result_dict.update(update)
+				elif result_dict[row.flow_name]["drop_time"] < row.drop_time:
+					update = {
+						row.flow_name: {
+							"tx": row.tx,
+							"rx": row.rx,
+							"id": row.id,
+							"drop_count": row.drop_count,
+							"drop_time": row.drop_time,
+							"percent_drop": row.percent_drop,
+							"test_no": row.testtry.test_no,
+							"custom_col": {
+								'source': flow_name_sp_list[Aend_index],
+								'destination': flow_name_sp_list[Zend_index],
+								'tag': flow_name_sp_list[tag_index]
+							},
+							"is_custom_col_vaild": True
+						}
+					}
+					result_dict.update(update)
+			except IndexError:
+				update = {
+					row.flow_name: {
+						"tx": row.tx,
+						"rx": row.rx,
+						"id": row.id,
+						"drop_count": row.drop_count,
+						"drop_time": row.drop_time,
+						"percent_drop": row.percent_drop,
+						"test_no": row.testtry.test_no,
+						"is_custom_col_vaild": False
+					}
+				}
+				result_dict.update(update)
+				result_row['custom_col'] = {
+					'source': '-',
+					'destination': '-',
+					'tag': '-'
+				}
+				result_row['is_custom_col_vaild'] = True
+				trigger_warning = True
 			results.append(result_row)
 
-		context = {'results': results, 'testcase_name':testcase_name, 'testno':testno}
+		if settings.objects.first().autogroup:
+			results = []
+			for flow_name, value in result_dict.items():
+				if 'custom_col' in value:
+					results.append(
+						{
+							"flow_name": flow_name,
+							"tx": value['tx'],
+							"rx": value['rx'],
+							"id": value['id'],
+							"drop_count": value['drop_count'],
+							"drop_time": value['drop_time'],
+							"percent_drop": value['percent_drop'],
+							"test_no": value['test_no'],
+							"custom_col": {
+								'source': value['custom_col']['source'],
+								'destination': value['custom_col']['destination'],
+								'tag': value['custom_col']['tag']
+							},
+							"is_custom_col_vaild": True
+						}
+					)
+				else:
+					results.append(
+						{
+							"flow_name": flow_name,
+							"tx": value['tx'],
+							"rx": value['rx'],
+							"id": value['id'],
+							"drop_count": value['drop_count'],
+							"drop_time": value['drop_time'],
+							"percent_drop": value['percent_drop'],
+							"test_no": value['test_no'],
+							"custom_col": {
+								'source': "-",
+								'destination': "-",
+								'tag': "-"
+							},
+							"is_custom_col_vaild": True
+						}
+					)
+			context = {'results': results, 'testcase_name':testcase_name, 'testno':testno, 'trigger_warning':trigger_warning}
+		else:
+			context = {'results': results, 'testcase_name':testcase_name, 'testno':testno, 'trigger_warning':trigger_warning}
 		return render(request, 'poc/result_detail.html', context)
 	except testResult.DoesNotExist:
+		return render(request, 'poc/result_detail.html')
+	except IndexError:
 		return render(request, 'poc/result_detail.html')
 
 def show_result_all(request):
@@ -183,4 +298,36 @@ def ajax_form(request):
 	return JsonResponse(respond)
 
 def settings_page(request):
-	return render(request, 'poc/settings.html')
+	#####
+	## for post method to submit setting changes
+	#####
+	if request.method == 'POST' and request.POST['delimiter']:
+		delimiter = request.POST['delimiter']
+		Aend_index = request.POST['Aend_index']
+		Zend_index = request.POST['Zend_index']
+		tag_index = request.POST['tag_index']
+		
+		setting = settings.objects.first()
+		setting.delimiter = delimiter
+		setting.Aend_index = Aend_index
+		setting.Zend_index = Zend_index
+		setting.tag_index = tag_index
+
+		try:
+			request.POST['checkbox']
+			setting.autogroup = True
+		except:
+			setting.autogroup = False
+
+
+		setting.save()
+		return HttpResponseRedirect(reverse('poc:settings'))
+	#####
+	## for render setting page
+	#####
+	else:
+		try:
+			context = settings.objects.first() 
+			return render(request, 'poc/settings.html', {'context': context})
+		except settings.DoesNotExist:
+			return render(request, 'poc/settings.html')

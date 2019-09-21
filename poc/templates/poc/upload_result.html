@@ -1,18 +1,21 @@
-{% extends 'poc/base.html' %}
-
-{% block title %}Result Upload{% endblock %}
-
-{% block content %}
+{% extends 'poc/base.html' %} {% block title %}Result Upload{% endblock %} {% block content %}
 
 <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
-	<main role="main" class="inner cover">
-		<h1 class="cover-heading">Upload your results.</h1>
-		<form action="{% url 'poc:resultUpload'%}" method="post" enctype="multipart/form-data">
-			{% csrf_token %}
-			{% if testcase %}
-			<div class="form-group selDiv">
-				<label for="sel1">Select Testcase:</label>
-				<select name="testcase" class="form-control" id="sel1">
+    <main role="main" class="inner cover">
+        <h1 class="cover-heading">Upload your results.</h1>
+        {% if trigger_warning %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error occured!</strong> {{ error_msg }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+        </div>
+        {% endif %}
+        <form action="{% url 'poc:resultUpload'%}" method="post" enctype="multipart/form-data">
+            {% csrf_token %} {% if testcase %}
+            <div class="form-group selDiv">
+                <label for="sel1">Select Testcase:</label>
+                <select name="testcase" class="form-control" id="sel1">
 					{% for row in testcase %}
 						{% if test_case_name.testcase.test_description in row.test_description %}
 							<option value="{{ row.id }}" selected>{{ row.test_name }}. {{row.test_description}}</option>
@@ -21,30 +24,30 @@
 						{% endif %}
 					{% endfor %}
 				</select>
-			</div>
-			{% else %}
-			<div class="form-group">
-					<label for="sel1">Select Testcase:</label>
-					<select name="testcase" class="form-control" id="sel1">
+            </div>
+            {% else %}
+            <div class="form-group">
+                <label for="sel1">Select Testcase:</label>
+                <select name="testcase" class="form-control" id="sel1">
 						<option>NO TESTCASE AVAILABLE PLEASE ADD IT FIRST.</option>
 					</select>
-				</div>
-			{% endif %}
-			<div class="form-group row">
-				<label class="col-sm-2 col-form-label">Test no.</label>
-				<div class="col-sm-10">
-					<input type="number" class="form-control" name="testno" value="{{ latest_testtry.test_no__max }}">
-				</div>
-			</div>
-			<div class="form-group">
-				<label>Paste result here:</label>
-				<textarea name="testresult" class="form-control" rows="5" ></textarea>
-				<div class="col-sm-10 py-3 px-0">
-					<button class="btn btn-primary" type="submit">Upload</button>
-				</div>
-			</div>
-		</form>
-	</main>
+            </div>
+            {% endif %}
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Test no.</label>
+                <div class="col-sm-10">
+                    <input type="number" class="form-control" name="testno" value="{{ latest_testtry.test_no__max }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Paste result here:</label>
+                <textarea name="testresult" class="form-control" rows="5"></textarea>
+                <div class="col-sm-10 py-3 px-0">
+                    <button class="btn btn-primary" type="submit">Upload</button>
+                </div>
+            </div>
+        </form>
+    </main>
 </div>
 
 {% endblock %}

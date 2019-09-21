@@ -23,11 +23,16 @@
 				<div class="float-right btn-group mr-2">
 					<a href="{% url 'poc:results' %}" class="btn btn-sm btn-outline-secondary">View all test</a>
 				</div>
-				<div class="float-right btn-group mr-2">
-					<a href="{% url 'poc:summary' testno %}" class="btn btn-sm btn-outline-secondary">Result Summary</a>
-				</div>
 			</div>
 		</div>
+		{% if trigger_warning %}
+		<div class="alert alert-warning alert-dismissible fade show" role="alert">
+			<strong>Warning!</strong> We cannot extract field from flow name in some row. Please check your <a href="{% url 'poc:settings' %}">setting</a>.
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		{% endif %}
 		<table id="table_resultdetail" class="display">
 			<thead>
 				<tr>
@@ -40,7 +45,9 @@
 					<th>Drop time(ms)</th>
 					<th>Drop %</th>
 					<th>no.</th>
-					<th>Stream set</th>
+					<th>src</th>
+					<th>dst</th>
+					<th>tag</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -55,10 +62,10 @@
 					<td>{{ row.drop_time }}</td>
 					<td>{{ row.percent_drop }}</td>
 					<td>{{ row.test_no }}</td>
-					{% if 'mul' not in row.stream_set and 'other' not in row.stream_set %}
-						<td>set{{ row.stream_set }}</td>
-					{% else %}
-						<td>{{ row.stream_set }}</td>
+					{% if row.is_custom_col_vaild %}
+						<td>{{ row.custom_col.source }}</td>
+						<td>{{ row.custom_col.destination }}</td>
+						<td>{{ row.custom_col.tag }}</td>
 					{% endif %}
 				</tr>
 			{% endfor %}
@@ -74,13 +81,15 @@
 					<th>Drop time(ms)</th>
 					<th>Drop %</th>
 					<th>no.</th>
-					<th>Stream set</th>
+					<th>src</th>
+					<th>dst</th>
+					<th>tag</th>
 				</tr>
 			</tfoot>
 		</table>
 	{% else %}
 		<p>
-			No Data.
+			Not found any data.
 		</p>
 	{% endif %}
 </div>

@@ -2,15 +2,41 @@
 <html>
 
 <head>
-    {% include 'poc/head.html' %} {% load chartit %} {{ chart|load_charts:"container" }}
-    <!--ChartLoader-->
+    <meta charset="utf-8">
+    {% load static %}
+    <!-- jquery and bootstrap -->
+    <link rel="stylesheet" href="{% static 'poc/BTjquery/bootstrap.min.css' %}">
+    <!-- datatable -->
+    <link rel="stylesheet" type="text/css" href="{% static 'poc/datatable/jquery.dataTables.min.css' %}">  
+    <!-- favicon -->
+    <link rel="shortcut icon" type="image/png" href="{% static 'poc/favicon.png' %}"/>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'poc/style.css' %}" />
+    <!-- Bootstrap jquery -->
+    <script src="{% static 'poc/BTjquery/jquery.min.js' %}"></script>
+    <script src="{% static 'poc/BTjquery/popper.min.js' %}"></script>
+    <script src="{% static 'poc/BTjquery/bootstrap.min.js' %}"></script>
+    <!-- datatable -->
+    <script src="{% static 'poc/datatable/jquery.dataTables.min.js' %}"></script>
+    <!-- Chart -->
+    <script src="https://code.highcharts.com/highcharts.src.js"></script>
+    <!-- datatable export -->
+    <script src="{% static 'poc/datatable/pdfmake.min.js' %}"></script>
+    <script src="{% static 'poc/datatable/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'poc/datatable/buttons.flash.min.js' %}"></script>
+    <script src="{% static 'poc/datatable/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'poc/datatable/vfs_fonts.js' %}"></script>
+    <script src="{% static 'poc/datatable/jszip.min.js' %}"></script>
+    <!-- Custom JS -->
+    <script type="text/javascript" src="{% static 'poc/main.js' %}"></script>
 </head>
-
-<body>
-    {% include 'poc/navbar.html' %}
-    <div class='chart-container'>
-        <div id='container'> Chart will be rendered here </div>
-    </div>
-</body>
-
+    <body>
+        {% include 'poc/navbar.html' %}
+        <!--ChartLoader-->
+        {% load chartit %}
+        {{ chart|load_charts:"container" }}
+        <div class='chart-container'>
+            <div id='container'> Chart will be rendered here </div>
+        </div>
+    </body>
 </html>
