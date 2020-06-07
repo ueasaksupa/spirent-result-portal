@@ -20,8 +20,8 @@ class testCase(models.Model):
 	test_name = models.CharField(default="", max_length=200)
 	test_description = models.CharField(default="", max_length=200)
 	def __str__(self):
-		return str(self.test_name) + "  ::  " + str(self.test_description
-)
+		return str(self.test_name) + "  ::  " + str(self.test_description)
+
 class testUpload(models.Model):
 	pub_date = models.DateTimeField('date published', default=timezone.now)
 	csv_result = models.TextField(default='')
@@ -62,7 +62,7 @@ class testTry(models.Model):
 				############
 					flow_name = row[thead.index('StreamBlock Name')].strip()
 					drop_count = row[thead.index('Dropped Count (Frames)')].replace(',','')
-					drop_time = row[thead.index('Dropped Frame Duration (us)')].replace(',','')
+					drop_time = row[thead.index('Dropped Frame Duration (ms)')].replace(',','')
 					tx = row[thead.index('Tx Count (Frames)')].replace(',','')
 					rx = row[thead.index('Rx Sig Count (Frames)')].replace(',','')
 					if int(tx) <= 0 :
@@ -80,7 +80,7 @@ class testTry(models.Model):
 						tx=tx,
 						rx=rx,
 						drop_count=drop_count,
-						drop_time=round(float(drop_time)/1000,2),
+						drop_time=round(float(drop_time),2),
 						percent_drop=round(percent_drop,5),
 						testtry_id=self.id,
 						testcase_id=testcase_id,

@@ -1,77 +1,87 @@
-{% extends 'poc/base.html' %}
-
-{% load static %}
-
-{% block title %}PoC Result{% endblock %}
-
-
-{% block content %}
+{% extends 'poc/base.html' %} {% load static %} {% block title %}PoC Result{% endblock %} {% block content %}
 
 <div class="show-result-container d-flex h-100 p-3 mx-auto flex-column">
-	<div>
-		<h3>
-			{{ desc }}
-		</h3>
-	</div>
-	<table id="table_alltestcases" class="display">
-		<thead>
-			<tr>
-				<th>no.</th>
-				<th>testcase</th>
-				<th>Description</th>
-				<th>Remark</th>
-				<th>Operation</th>
-				<th>upload at</th>
-			</tr>
-		</thead>
-		<tbody>
-		{% for row in rows %}
-			<tr>
-				<td>{{ row.test_no }}</td>
-				<td>{{ row.testcase.test_name }}</td>
-				<td><a href="{% url 'poc:resultdetail' row.test_no %}">{{ row.testcase.test_description }}</a></td>
-				<td>{{ row.remark }}</td>
-				<td class=" center"><a href="#my_modal" data-toggle="modal" data-target="#edit_remark_modal" data-text="{{ row.remark }}" data-set="{{ row.test_no }}">Edit remark</a></td>
-				<td>{{ row.pub_date }}</td>
-			</tr>
-		{% endfor %}
-		</tbody>
-		<tfoot>
-			<tr>
-				<th>no.</th>
-				<th>testcase</th>
-				<th>Description</th>
-				<th>Remark</th>
-				<th>Operation</th>
-				<th>upload at</th>
-			</tr>
-		</tfoot>
-	</table>
-	<!-- Modal -->
-	<div class="modal fade" id="edit_remark_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered" role="document">
-			<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalLongTitle">Edit Remark</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<form class="tagForm" method="post" action="{% url 'poc:editremark' %}">
-				{% csrf_token %}
-					<div class="form-group">
-						<label for="remark" class="col-form-label">Remark</label>
-						<input type="text" id="remark_textbox" class="form-control" name="remark" value="">
-						<input type="hidden" class="form-control" name="test_no" value="">
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-						<button type="submit" class="btn btn-primary">Save changes</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
+    <div>
+        <h3>
+            {{ desc }}
+        </h3>
+    </div>
+    <table id="table_alltestcases" class="display">
+        <thead>
+            <tr>
+                <th>no.</th>
+                <th>testcase</th>
+                <th>Description</th>
+                <th>Remark</th>
+                <th>Operation</th>
+                <th>upload at</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.test_no }}</td>
+                <td>{{ row.testcase.test_name }}</td>
+                <td><a href="{% url 'poc:resultdetail' row.test_no %}">{{ row.testcase.test_description }}</a></td>
+                <td>{{ row.remark }}</td>
+                <td class="center">
+                    <a
+                        href="#my_modal"
+                        data-toggle="modal"
+                        data-target="#edit_remark_modal"
+                        data-text="{{ row.remark }}"
+                        data-set="{{ row.test_no }}"
+                        >Edit remark</a
+                    >
+                </td>
+                <td>{{ row.pub_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>no.</th>
+                <th>testcase</th>
+                <th>Description</th>
+                <th>Remark</th>
+                <th>Operation</th>
+                <th>upload at</th>
+            </tr>
+        </tfoot>
+    </table>
+    <!-- Modal -->
+    <div
+        class="modal fade"
+        id="edit_remark_modal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="exampleModalCenterTitle"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Edit Remark</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="tagForm" method="post" action="{% url 'poc:editremark' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="remark" class="col-form-label">Remark</label>
+                            <input type="text" id="remark_textbox" class="form-control" name="remark" value="" />
+                            <input type="hidden" class="form-control" name="test_no" value="" />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
 </div>
-{% endblock %}
