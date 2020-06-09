@@ -62,7 +62,7 @@ class testTry(models.Model):
 				############
 					flow_name = row[thead.index('StreamBlock Name')].strip()
 					drop_count = row[thead.index('Dropped Count (Frames)')].replace(',','')
-					drop_time = row[thead.index('Dropped Frame Duration (ms)')].replace(',','')
+					drop_time = row[thead.index('Dropped Frame Duration (us)')].replace(',','')
 					tx = row[thead.index('Tx Count (Frames)')].replace(',','')
 					rx = row[thead.index('Rx Sig Count (Frames)')].replace(',','')
 					if int(tx) <= 0 :
@@ -80,7 +80,7 @@ class testTry(models.Model):
 						tx=tx,
 						rx=rx,
 						drop_count=drop_count,
-						drop_time=round(float(drop_time),2),
+						drop_time=round(float(drop_time)/1000 ,2),
 						percent_drop=round(percent_drop,5),
 						testtry_id=self.id,
 						testcase_id=testcase_id,
